@@ -11,12 +11,12 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"base_path": &schema.Schema{
+			"base_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OPALSTACK_BASE_PATH", "https://my.opalstack.com"),
 			},
-			"token": &schema.Schema{
+			"token": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OPALSTACK_TOKEN", nil),
@@ -26,8 +26,8 @@ func Provider() *schema.Provider {
 			// "hashicups_order": resourceOrder(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"opalstack_cert": dataSourceCert(),
-			// "hashicups_order":   dataSourceOrder(),
+			"opalstack_cert":  dataSourceCert(),
+			"opalstack_certs": dataSourceCerts(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

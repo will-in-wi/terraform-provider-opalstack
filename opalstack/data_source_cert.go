@@ -2,6 +2,7 @@ package opalstack
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -10,47 +11,7 @@ import (
 func dataSourceCert() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceCertRead,
-		Schema: map[string]*schema.Schema{
-			"uuid": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"name": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"cert": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"intermediates": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"key": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"exp_date": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"is_opalstack_letsencrypt": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"is_opalstack_shared_cert": &schema.Schema{
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"listed_domains": &schema.Schema{
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-		},
+		Schema:      certificateSchema(),
 	}
 }
 
@@ -79,7 +40,7 @@ func dataSourceCertRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("cert", certResponse.Cert)
 	d.Set("intermediates", certResponse.Intermediates)
 	d.Set("key", certResponse.Key)
-	d.Set("exp_date", certResponse.ExpDate)
+	d.Set("exp_date", certResponse.ExpDate.Format(time.RFC3339))
 	d.Set("is_opalstack_letsencrypt", certResponse.IsOpalstackLetsencrypt)
 	d.Set("is_opalstack_shared_cert", certResponse.IsOpalstackSharedCert)
 	d.Set("listed_domains", certResponse.ListedDomains)
