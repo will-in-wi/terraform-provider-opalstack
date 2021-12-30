@@ -19,7 +19,7 @@ func dataSourceCerts() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: certificateSchema(),
+					Schema: certificateSchema(false, true),
 				},
 			},
 		},

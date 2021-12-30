@@ -26,8 +26,9 @@ func Provider() *schema.Provider {
 			// "hashicups_order": resourceOrder(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"opalstack_cert":  dataSourceCert(),
-			"opalstack_certs": dataSourceCerts(),
+			"opalstack_cert":        dataSourceCert(),
+			"opalstack_certs":       dataSourceCerts(),
+			"opalstack_cert_shared": dataSourceCertShared(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
