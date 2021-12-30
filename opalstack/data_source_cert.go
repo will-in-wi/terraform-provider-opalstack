@@ -72,12 +72,6 @@ func dataSourceCertRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	certResponse, _, err := r.client.CertApi.CertRead(*r.auth, strUuid)
 	if err != nil {
-		// diags = append(diags, diag.Diagnostic{
-		// 	Severity: diag.Error,
-		// 	Summary:  "Error returned from upstream",
-		// 	Detail:   fmt.Sprintf("Blah: %+v", httpResponse),
-		// })
-		// return diags
 		return diag.FromErr(err)
 	}
 
