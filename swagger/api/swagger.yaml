@@ -1,0 +1,4175 @@
+openapi: 3.0.3
+info:
+  title: Opalstack API
+  description: "\n## The Opalstack JSON REST API\n\n### Authorization\nThis API uses\
+    \ an **Authorization** header of the form: `\"Authorization: Token 1111111111111111111111111111111111111111\"\
+    `, where **1111111111111111111111111111111111111111** represents an API token\
+    \ created at https://my.opalstack.com/tokens/.\n\nThe typical format of an API\
+    \ request looks like the following:\n```\nGET request:\n    curl -s -H \"Authorization:\
+    \ Token 1111111111111111111111111111111111111111\" \"https://my.opalstack.com/api/v1/site/list/\"\
+    \ | jq .\n\nPOST request:\n    curl -s -H \"Content-Type: application/json\" -H\
+    \ \"Authorization: Token 1111111111111111111111111111111111111111\" \\\n     \
+    \       -X POST -d '[{\"id\": \"(site UUID)\", \"redirect\": true, ...}]' \"https://my.opalstack.com/api/v1/site/update/\"\
+    \ | jq .\n```\n(Further examples will omit **headers** and **jq** for the sake\
+    \ of clarity)\n\nYou can also authorize requests on our API Documentation page\
+    \ (https://my.opalstack.com/api/v1/doc/) in order to facilitate development.\n\
+    To do so, click the \"**Authorize**\" button on the right side of the page and\
+    \ enter \"**Token 1111111111111111111111111111111111111111**\" in the **Value**\
+    \ field within.\nAfterword, you will be able to perform requests directly from\
+    \ the documentation page. Be sure to logout when finished.\n\n### Embedding\n\
+    The Opalstack API supports _embedding_. This allows you to nest child API objects\
+    \ in a single GET request. For example, consider the following GET request performed\
+    \ with **curl**:\n```\nRequest:\n    curl \"https://my.opalstack.com/api/v1/osuser/list/\"\
+    \n\nResponse:\n    [\n      {\n        \"id\": \"01010101-0202-0303-0404-050505050505\"\
+    ,\n        \"state\": \"READY\",\n        \"ready\": true,\n        \"name\":\
+    \ \"the_osuser_name\",\n        \"server\": \"11111111-1212-1313-1414-151515151515\"\
+    \n      }\n    ]\n```\n\nSuppose then that we would like additional information\
+    \ about the **server**. We _could_ proceed to query the **server** UUID (**11111111-1212-1313-1414-151515151515**)\
+    \ at the `/server/read/{uuid}` endpoint, like this:\n```\nRequest:\n    curl \"\
+    https://my.opalstack.com/api/v1/server/read/11111111-1212-1313-1414-151515151515\"\
+    \n\nResponse:\n    {\n      \"id\": \"11111111-1212-1313-1414-151515151515\",\n\
+    \      \"hostname\": \"vpsNNN.opalstack.com\"\n    }\n```\n\nHowever, we could\
+    \ have instead choosen to specify `?embed=server` as a query parameter to the\
+    \ original GET request. This will cause objects to be _embedded_ in the response\
+    \ directly:\n```\nRequest:\n    curl \"https://my.opalstack.com/api/v1/osuser/list/?embed=server\"\
+    \n\nResponse:\n    [\n      {\n        \"id\": \"01010101-0202-0303-0404-050505050505\"\
+    ,\n        \"state\": \"READY\",\n        \"ready\": true,\n        \"name\":\
+    \ \"the_osuser_name\",\n        \"server\": {\n          \"id\": \"11111111-1212-1313-1414-151515151515\"\
+    ,\n          \"hostname\": \"vpsNNN.opalstack.com\"\n        }\n      }\n    ]\n\
+    ```\nHere, the **server** field has been be populated with the full object instead\
+    \ of just a UUID.\n\nThe **embed** query parameter accepts multiple (comma-separated)\
+    \ fields to embed. For example:\n```\ncurl \"https://my.opalstack.com/api/v1/account/info/?embed=web_servers,imap_servers,smtp_servers\"\
+    \n```\n"
+  termsOfService: https://opalstack.com/tos.html
+  version: 1.0.0
+servers:
+- url: /
+paths:
+  /api/v1/login/:
+    post:
+      tags:
+      - login
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Signin'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SigninResponse'
+        "400":
+          description: Bad request
+  /api/v1/notice/list/:
+    get:
+      tags:
+      - notice
+      operationId: notice_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoticeResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/notice/read/{uuid}:
+    get:
+      tags:
+      - notice
+      operationId: notice_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoticeResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/notice/create/:
+    post:
+      tags:
+      - notice
+      operationId: notice_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoticeCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoticeResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/notice/update/:
+    post:
+      tags:
+      - notice
+      operationId: notice_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoticeUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoticeResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/notice/delete/:
+    post:
+      tags:
+      - notice
+      operationId: notice_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/NoticeRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/token/list/:
+    get:
+      tags:
+      - token
+      operationId: token_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TokenResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/token/read/{key}:
+    get:
+      tags:
+      - token
+      operationId: token_read
+      parameters:
+      - name: key
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/token/create/:
+    post:
+      tags:
+      - token
+      operationId: token_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/TokenCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TokenResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/token/update/:
+    post:
+      tags:
+      - token
+      operationId: token_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/TokenUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TokenResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/token/delete/:
+    post:
+      tags:
+      - token
+      operationId: token_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/TokenRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/cert/list/:
+    get:
+      tags:
+      - cert
+      operationId: cert_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CertResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/cert/read/{uuid}:
+    get:
+      tags:
+      - cert
+      operationId: cert_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/cert/create/:
+    post:
+      tags:
+      - cert
+      operationId: cert_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CertCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CertResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/cert/update/:
+    post:
+      tags:
+      - cert
+      operationId: cert_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CertUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CertResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/cert/delete/:
+    post:
+      tags:
+      - cert
+      operationId: cert_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/CertRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/cert/shared/:
+    get:
+      tags:
+      - cert
+      operationId: cert_shared
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SharedCertResponse'
+      security:
+      - tokenAuth: []
+  /api/v1/server/list/:
+    get:
+      tags:
+      - server
+      operationId: server_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerListResponse'
+      security:
+      - tokenAuth: []
+  /api/v1/server/read/{uuid}:
+    get:
+      tags:
+      - server
+      operationId: server_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebServerReadResponse'
+      security:
+      - tokenAuth: []
+  /api/v1/ip/list/:
+    get:
+      tags:
+      - ip
+      operationId: ip_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IPAddressResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/ip/read/{uuid}:
+    get:
+      tags:
+      - ip
+      operationId: ip_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IPAddressResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/domain/list/:
+    get:
+      tags:
+      - domain
+      operationId: domain_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DomainResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/domain/read/{uuid}:
+    get:
+      tags:
+      - domain
+      operationId: domain_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DomainResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/domain/create/:
+    post:
+      tags:
+      - domain
+      operationId: domain_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DomainCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DomainResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/domain/delete/:
+    post:
+      tags:
+      - domain
+      operationId: domain_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DomainDelete'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/dnsrecord/list/:
+    get:
+      tags:
+      - dnsrecord
+      operationId: dnsrecord_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DNSRecordResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/dnsrecord/read/{uuid}:
+    get:
+      tags:
+      - dnsrecord
+      operationId: dnsrecord_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DNSRecordResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/dnsrecord/create/:
+    post:
+      tags:
+      - dnsrecord
+      operationId: dnsrecord_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DNSRecordCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DNSRecordResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/dnsrecord/update/:
+    post:
+      tags:
+      - dnsrecord
+      operationId: dnsrecord_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DNSRecordUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DNSRecordResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/dnsrecord/delete/:
+    post:
+      tags:
+      - dnsrecord
+      operationId: dnsrecord_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DNSRecordRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/account/info/:
+    get:
+      tags:
+      - account
+      operationId: account_info
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountInfoResponse'
+      security:
+      - tokenAuth: []
+  /api/v1/osuser/list/:
+    get:
+      tags:
+      - osuser
+      operationId: osuser_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OSUserResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/osuser/read/{uuid}:
+    get:
+      tags:
+      - osuser
+      operationId: osuser_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OSUserResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/osuser/create/:
+    post:
+      tags:
+      - osuser
+      operationId: osuser_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/OSUserCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OSUserResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/osuser/update/:
+    post:
+      tags:
+      - osuser
+      operationId: osuser_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/OSUserUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OSUserResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/osuser/delete/:
+    post:
+      tags:
+      - osuser
+      operationId: osuser_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/OSUserRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/osvar/list/:
+    get:
+      tags:
+      - osvar
+      operationId: osvar_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OSVarResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/osvar/read/{uuid}:
+    get:
+      tags:
+      - osvar
+      operationId: osvar_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OSVarResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/osvar/create/:
+    post:
+      tags:
+      - osvar
+      operationId: osvar_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/OSVarCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OSVarResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/osvar/update/:
+    post:
+      tags:
+      - osvar
+      operationId: osvar_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/OSVarUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OSVarResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/osvar/delete/:
+    post:
+      tags:
+      - osvar
+      operationId: osvar_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/OSVarRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/app/list/:
+    get:
+      tags:
+      - app
+      operationId: app_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/app/read/{uuid}:
+    get:
+      tags:
+      - app
+      operationId: app_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/app/create/:
+    post:
+      tags:
+      - app
+      operationId: app_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApplicationCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/app/update/:
+    post:
+      tags:
+      - app
+      operationId: app_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApplicationUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/app/delete/:
+    post:
+      tags:
+      - app
+      operationId: app_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApplicationRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/app/installed/:
+    post:
+      tags:
+      - app
+      operationId: app_installed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApplicationInstalledRequest'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/app/failed/:
+    post:
+      tags:
+      - app
+      operationId: app_failed
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApplicationInstalledRequest'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/psqluser/list/:
+    get:
+      tags:
+      - psqluser
+      operationId: psqluser_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PsqlUserResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/psqluser/read/{uuid}:
+    get:
+      tags:
+      - psqluser
+      operationId: psqluser_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PsqlUserResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/psqluser/create/:
+    post:
+      tags:
+      - psqluser
+      operationId: psqluser_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PsqlUserCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PsqlUserResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/psqluser/update/:
+    post:
+      tags:
+      - psqluser
+      operationId: psqluser_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PsqlUserUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PsqlUserResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/psqluser/delete/:
+    post:
+      tags:
+      - psqluser
+      operationId: psqluser_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PsqlUserRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/psqldb/list/:
+    get:
+      tags:
+      - psqldb
+      operationId: psqldb_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PsqlDBResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/psqldb/read/{uuid}:
+    get:
+      tags:
+      - psqldb
+      operationId: psqldb_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PsqlDBResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/psqldb/create/:
+    post:
+      tags:
+      - psqldb
+      operationId: psqldb_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PsqlDBCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PsqlDBResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/psqldb/update/:
+    post:
+      tags:
+      - psqldb
+      operationId: psqldb_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PsqlDBUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PsqlDBResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/psqldb/delete/:
+    post:
+      tags:
+      - psqldb
+      operationId: psqldb_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/PsqlDBRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mariauser/list/:
+    get:
+      tags:
+      - mariauser
+      operationId: mariauser_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MariaUserResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/mariauser/read/{uuid}:
+    get:
+      tags:
+      - mariauser
+      operationId: mariauser_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MariaUserResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mariauser/create/:
+    post:
+      tags:
+      - mariauser
+      operationId: mariauser_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MariaUserCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MariaUserResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/mariauser/update/:
+    post:
+      tags:
+      - mariauser
+      operationId: mariauser_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MariaUserUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MariaUserResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mariauser/delete/:
+    post:
+      tags:
+      - mariauser
+      operationId: mariauser_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MariaUserRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mariadb/list/:
+    get:
+      tags:
+      - mariadb
+      operationId: mariadb_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MariaDBResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/mariadb/read/{uuid}:
+    get:
+      tags:
+      - mariadb
+      operationId: mariadb_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MariaDBResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mariadb/create/:
+    post:
+      tags:
+      - mariadb
+      operationId: mariadb_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MariaDBCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MariaDBResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/mariadb/update/:
+    post:
+      tags:
+      - mariadb
+      operationId: mariadb_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MariaDBUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MariaDBResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mariadb/delete/:
+    post:
+      tags:
+      - mariadb
+      operationId: mariadb_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MariaDBRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/site/list/:
+    get:
+      tags:
+      - site
+      operationId: site_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SiteResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/site/read/{uuid}:
+    get:
+      tags:
+      - site
+      operationId: site_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SiteResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/site/create/:
+    post:
+      tags:
+      - site
+      operationId: site_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SiteCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SiteResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/site/update/:
+    post:
+      tags:
+      - site
+      operationId: site_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SiteUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SiteResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/site/delete/:
+    post:
+      tags:
+      - site
+      operationId: site_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/SiteRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mailuser/list/:
+    get:
+      tags:
+      - mailuser
+      operationId: mailuser_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MailUserResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/mailuser/read/{uuid}:
+    get:
+      tags:
+      - mailuser
+      operationId: mailuser_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailUserResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mailuser/create/:
+    post:
+      tags:
+      - mailuser
+      operationId: mailuser_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MailUserCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MailUserResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/mailuser/update/:
+    post:
+      tags:
+      - mailuser
+      operationId: mailuser_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MailUserUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MailUserResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mailuser/delete/:
+    post:
+      tags:
+      - mailuser
+      operationId: mailuser_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MailUserDelete'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/mailuser/update_public/:
+    post:
+      tags:
+      - mailuser
+      operationId: mailuser_update_public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MailUserUpdatePublic'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MailUserResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/address/list/:
+    get:
+      tags:
+      - address
+      operationId: address_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VirtualAliasResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/address/read/{uuid}:
+    get:
+      tags:
+      - address
+      operationId: address_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VirtualAliasResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/address/create/:
+    post:
+      tags:
+      - address
+      operationId: address_create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/VirtualAliasCreate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VirtualAliasResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+      security:
+      - tokenAuth: []
+  /api/v1/address/update/:
+    post:
+      tags:
+      - address
+      operationId: address_update
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/VirtualAliasUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VirtualAliasResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/address/delete/:
+    post:
+      tags:
+      - address
+      operationId: address_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/VirtualAliasRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/quarantinedmail/list/:
+    get:
+      tags:
+      - quarantinedmail
+      operationId: quarantinedmail_list
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuarantinedMailResponse'
+                x-content-type: application/json
+      security:
+      - tokenAuth: []
+  /api/v1/quarantinedmail/read/{uuid}:
+    get:
+      tags:
+      - quarantinedmail
+      operationId: quarantinedmail_read
+      parameters:
+      - name: uuid
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarantinedMailResponse'
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/quarantinedmail/submit/:
+    post:
+      tags:
+      - quarantinedmail
+      operationId: quarantinedmail_submit
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/QuarantinedMailUpdate'
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuarantinedMailResponse'
+                x-content-type: application/json
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/quarantinedmail/delete/:
+    post:
+      tags:
+      - quarantinedmail
+      operationId: quarantinedmail_delete
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/QuarantinedMailRead'
+        required: true
+      responses:
+        "200":
+          description: No response body
+        "400":
+          description: Bad request
+        "404":
+          description: Not found
+      security:
+      - tokenAuth: []
+  /api/v1/resource/imap/update/:
+    post:
+      tags:
+      - resource
+      operationId: resource_imap_update_create
+      responses:
+        "200":
+          description: No response body
+      security:
+      - tokenAuth: []
+  /api/v1/mail/usage/:
+    post:
+      tags:
+      - mail
+      operationId: mail_usage_create
+      responses:
+        "200":
+          description: No response body
+      security:
+      - tokenAuth: []
+  /api/v1/schema/:
+    get:
+      tags:
+      - schema
+      description: "OpenApi3 schema for this API. Format can be selected via content\
+        \ negotiation.\n\n- YAML: application/vnd.oai.openapi\n- JSON: application/vnd.oai.openapi+json"
+      operationId: schema_retrieve
+      parameters:
+      - name: format
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - name: lang
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      responses:
+        "200":
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+                x-content-type: application/vnd.oai.openapi
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+      security:
+      - tokenAuth: []
+      - {}
+components:
+  schemas:
+    AccountInfoResponse:
+      required:
+      - created_at
+      - email
+      - id
+      - imap_servers
+      - ips
+      - ready
+      - smtp_servers
+      - state
+      - web_servers
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        email:
+          type: string
+          format: email
+        web_servers:
+          type: array
+          items:
+            type: string
+            format: uuid
+        imap_servers:
+          type: array
+          items:
+            type: string
+            format: uuid
+        smtp_servers:
+          type: array
+          items:
+            type: string
+            format: uuid
+        ips:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+      example:
+        imap_servers:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        ready: true
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+        web_servers:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        ips:
+        - ips
+        - ips
+        email: ""
+        smtp_servers:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+    AppTypeEnum:
+      type: string
+      enum:
+      - STA
+      - NPF
+      - APA
+      - CUS
+      - SLS
+      - SLP
+      - SVN
+      - DAV
+    ApplicationCreate:
+      required:
+      - name
+      - osuser
+      - type
+      type: object
+      properties:
+        name:
+          maxLength: 64
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+        osuser:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/AppTypeEnum'
+        installer_url:
+          maxLength: 1024
+          type: string
+          format: uri
+          nullable: true
+        json:
+          type: object
+          additionalProperties: {}
+          nullable: true
+    ApplicationInstalledRequest:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    ApplicationRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    ApplicationResponse:
+      required:
+      - id
+      - json
+      - name
+      - osuser
+      - ready
+      - server
+      - state
+      - type
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+        server:
+          type: string
+          format: uuid
+        osuser:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/AppTypeEnum'
+        port:
+          type: integer
+          default: 8000
+        installer_url:
+          type: string
+          default: https://raw.githubusercontent.com/opalstack/installers/master/core/django/install.py
+        json:
+          $ref: '#/components/schemas/ApplicationResponseJson'
+      example:
+        server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        port: 0
+        ready: true
+        name: name
+        installer_url: https://raw.githubusercontent.com/opalstack/installers/master/core/django/install.py
+        json:
+          fpm_max_spare_servers: 9
+          app_command: app_command
+          app_version: app_version
+          fpm_max_children: 5
+          app_port: 1
+          app_lang_version: app_lang_version
+          php_version: 3
+          fpm_max_requests: 5
+          app_name: app_name
+          fpm_start_servers: 2
+          fpm_min_spare_servers: 7
+          sym_link_path: /home/my_osuser/path/to/dir/
+          db_name: db_name
+          fpm_type: fpm_type
+          db_user: db_user
+          app_path: app_path
+          app_exec: true
+          db_port: 6
+          url_fopen: true
+          db_host: db_host
+          auto_site_url: true
+        osuser: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+        type: STA
+    ApplicationResponseJson:
+      required:
+      - app_command
+      - app_exec
+      - app_lang_version
+      - app_name
+      - app_path
+      - app_version
+      - auto_site_url
+      - db_host
+      - db_name
+      - db_user
+      - fpm_type
+      - url_fopen
+      type: object
+      properties:
+        db_name:
+          type: string
+        db_user:
+          type: string
+        db_host:
+          type: string
+        db_port:
+          type: integer
+          default: 3306
+        app_name:
+          type: string
+        app_port:
+          type: integer
+          default: 8000
+        app_path:
+          type: string
+        app_version:
+          type: string
+        app_command:
+          type: string
+        app_lang_version:
+          type: string
+        sym_link_path:
+          type: string
+          default: /home/my_osuser/path/to/dir/
+        auto_site_url:
+          type: boolean
+        app_exec:
+          type: boolean
+        url_fopen:
+          type: boolean
+        fpm_type:
+          type: string
+        fpm_max_children:
+          type: integer
+          default: 5
+        fpm_max_requests:
+          type: integer
+          default: 500
+        fpm_start_servers:
+          type: integer
+          default: 5
+        fpm_min_spare_servers:
+          type: integer
+          default: 5
+        fpm_max_spare_servers:
+          type: integer
+          default: 5
+        php_version:
+          type: integer
+          default: 74
+      example:
+        fpm_max_spare_servers: 9
+        app_command: app_command
+        app_version: app_version
+        fpm_max_children: 5
+        app_port: 1
+        app_lang_version: app_lang_version
+        php_version: 3
+        fpm_max_requests: 5
+        app_name: app_name
+        fpm_start_servers: 2
+        fpm_min_spare_servers: 7
+        sym_link_path: /home/my_osuser/path/to/dir/
+        db_name: db_name
+        fpm_type: fpm_type
+        db_user: db_user
+        app_path: app_path
+        app_exec: true
+        db_port: 6
+        url_fopen: true
+        db_host: db_host
+        auto_site_url: true
+    ApplicationUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/AppTypeEnum'
+        json:
+          type: object
+          additionalProperties: {}
+          nullable: true
+    CertCreate:
+      required:
+      - cert
+      - key
+      type: object
+      properties:
+        name:
+          maxLength: 255
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+        cert:
+          type: string
+        intermediates:
+          type: string
+          nullable: true
+        key:
+          type: string
+        is_opalstack_letsencrypt:
+          type: boolean
+          default: false
+    CertRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    CertResponse:
+      required:
+      - cert
+      - exp_date
+      - id
+      - intermediates
+      - key
+      - listed_domains
+      - name
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cert:
+          type: string
+        intermediates:
+          type: string
+        key:
+          type: string
+        exp_date:
+          type: string
+          format: date-time
+        listed_domains:
+          type: array
+          items:
+            type: string
+        is_opalstack_letsencrypt:
+          type: boolean
+          default: true
+        is_opalstack_shared_cert:
+          type: boolean
+          default: false
+      example:
+        is_opalstack_letsencrypt: true
+        listed_domains:
+        - listed_domains
+        - listed_domains
+        name: name
+        is_opalstack_shared_cert: false
+        cert: cert
+        exp_date: 2000-01-23T04:56:07.000+00:00
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        intermediates: intermediates
+        key: key
+    CertUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          maxLength: 255
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+        cert:
+          type: string
+        intermediates:
+          type: string
+          nullable: true
+        key:
+          type: string
+        is_opalstack_letsencrypt:
+          type: boolean
+          default: false
+    DNSRecordCreate:
+      required:
+      - content
+      - domain
+      - type
+      type: object
+      properties:
+        domain:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/DNSRecordTypeEnum'
+        content:
+          maxLength: 64000
+          type: string
+        priority:
+          maximum: 65535
+          minimum: 0
+          type: integer
+        ttl:
+          maximum: 2147483647
+          minimum: 300
+          type: integer
+    DNSRecordRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    DNSRecordResponse:
+      required:
+      - content
+      - domain
+      - id
+      - ready
+      - state
+      - type
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        domain:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/DNSRecordTypeEnum'
+        content:
+          type: string
+        priority:
+          type: integer
+          default: 10
+        ttl:
+          type: integer
+          default: 3600
+      example:
+        ready: true
+        domain: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+        type: A
+        priority: 0
+        ttl: 6
+        content: content
+    DNSRecordTypeEnum:
+      type: string
+      enum:
+      - A
+      - AAAA
+      - CNAME
+      - MX
+      - TXT
+      - SRV
+    DNSRecordUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        domain:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/DNSRecordTypeEnum'
+        content:
+          maxLength: 64000
+          type: string
+        priority:
+          maximum: 65535
+          minimum: 0
+          type: integer
+        ttl:
+          maximum: 2147483647
+          minimum: 300
+          type: integer
+    DomainCreate:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          maxLength: 255
+          minLength: 3
+          type: string
+    DomainDelete:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    DomainResponse:
+      required:
+      - dkim_record
+      - id
+      - is_valid_hostname
+      - ready
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+          default: www.example.com
+        dkim_record:
+          type: string
+        is_valid_hostname:
+          type: boolean
+      example:
+        dkim_record: dkim_record
+        ready: true
+        name: www.example.com
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+        is_valid_hostname: true
+    IPAddressResponse:
+      required:
+      - id
+      - ip
+      - primary
+      - server
+      - type
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ip:
+          type: string
+        server:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/IPAddressTypeEnum'
+        primary:
+          type: boolean
+      example:
+        server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        ip: ip
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: "4"
+        primary: true
+    IPAddressTypeEnum:
+      type: string
+      enum:
+      - "4"
+      - "6"
+    ImapServerReadResponse:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+          default: imap1.us.opalstack.com
+        type:
+          type: string
+          default: imap
+      example:
+        hostname: imap1.us.opalstack.com
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: imap
+    MailUserCreate:
+      required:
+      - imap_server
+      - name
+      type: object
+      properties:
+        imap_server:
+          type: string
+          format: uuid
+        name:
+          maxLength: 32
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+        password:
+          maxLength: 64
+          minLength: 10
+          type: string
+        procmailrc:
+          type: string
+        autoresponder_enable:
+          type: boolean
+        autoresponder_subject:
+          maxLength: 996
+          type: string
+        autoresponder_message:
+          type: string
+    MailUserDelete:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    MailUserResponse:
+      required:
+      - autoresponder_enable
+      - autoresponder_message
+      - autoresponder_noreply
+      - autoresponder_subject
+      - id
+      - imap_server
+      - name
+      - procmailrc
+      - ready
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+        imap_server:
+          type: string
+          format: uuid
+        procmailrc:
+          type: string
+        autoresponder_enable:
+          type: string
+        autoresponder_subject:
+          type: string
+        autoresponder_message:
+          type: string
+        autoresponder_noreply:
+          type: array
+          items:
+            type: string
+            format: email
+      example:
+        procmailrc: procmailrc
+        autoresponder_subject: autoresponder_subject
+        ready: true
+        name: name
+        imap_server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+        autoresponder_noreply:
+        - ""
+        - ""
+        autoresponder_enable: autoresponder_enable
+        autoresponder_message: autoresponder_message
+    MailUserUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        password:
+          maxLength: 64
+          minLength: 10
+          type: string
+        procmailrc:
+          type: string
+        autoresponder_enable:
+          type: boolean
+        autoresponder_subject:
+          maxLength: 996
+          type: string
+        autoresponder_message:
+          type: string
+    MailUserUpdatePublic:
+      required:
+      - current_password
+      - name
+      type: object
+      properties:
+        name:
+          maxLength: 32
+          minLength: 1
+          type: string
+        current_password:
+          maxLength: 255
+          minLength: 1
+          type: string
+        password:
+          maxLength: 64
+          minLength: 10
+          type: string
+        procmailrc:
+          type: string
+        autoresponder_enable:
+          type: boolean
+        autoresponder_subject:
+          maxLength: 996
+          type: string
+        autoresponder_message:
+          type: string
+    MariaCharset:
+      type: string
+      enum:
+      - utf8
+      - armscii8
+      - ascii
+      - big5
+      - binary
+      - cp1250
+      - cp1251
+      - cp1256
+      - cp1257
+      - cp850
+      - cp852
+      - cp866
+      - cp932
+      - dec8
+      - eucjpms
+      - euckr
+      - gb2312
+      - gbk
+      - geostd8
+      - greek
+      - hebrew
+      - hp8
+      - keybcs2
+      - koi8r
+      - koi8u
+      - latin1
+      - latin2
+      - latin5
+      - latin7
+      - macce
+      - macroman
+      - sjis
+      - swe7
+      - tis620
+      - ucs2
+      - ujis
+      - utf16
+      - utf16le
+      - utf32
+      - utf8mb4
+    MariaDBCreate:
+      required:
+      - name
+      - server
+      type: object
+      properties:
+        name:
+          maxLength: 32
+          pattern: ^(?!(man|admin|root|bin|daemon|adm|lp|sync|shutdown|halt|mail|operator|games|ftp|nobody|systemd-network|dbus|polkitd|sshd|postfix|chrony|apache|mysql|nginx|postgres|ntp|johns|d3cline|sean|klynton|ryans|postgres|mysql|timg|djl|maryh|nickr|iliasr|peterd|marcush|aaront|muhammadp|bjornm|ph|sites|apps)$).+$
+          type: string
+        server:
+          type: string
+          format: uuid
+        charset:
+          $ref: '#/components/schemas/MariaCharset'
+        dbusers_readwrite:
+          type: array
+          items:
+            type: string
+            format: uuid
+        dbusers_readonly:
+          type: array
+          items:
+            type: string
+            format: uuid
+    MariaDBRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    MariaDBResponse:
+      required:
+      - charset
+      - dbusers_readonly
+      - dbusers_readwrite
+      - id
+      - name
+      - ready
+      - server
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+        server:
+          type: string
+          format: uuid
+        charset:
+          $ref: '#/components/schemas/MariaCharset'
+        dbusers_readwrite:
+          type: array
+          items:
+            type: string
+            format: uuid
+        dbusers_readonly:
+          type: array
+          items:
+            type: string
+            format: uuid
+      example:
+        server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        charset: utf8
+        ready: true
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+        dbusers_readwrite:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        dbusers_readonly:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+    MariaDBUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dbusers_readwrite:
+          type: array
+          items:
+            type: string
+            format: uuid
+        dbusers_readonly:
+          type: array
+          items:
+            type: string
+            format: uuid
+    MariaUserCreate:
+      required:
+      - name
+      - server
+      type: object
+      properties:
+        server:
+          type: string
+          format: uuid
+        name:
+          maxLength: 32
+          pattern: ^(?!(man|admin|root|bin|daemon|adm|lp|sync|shutdown|halt|mail|operator|games|ftp|nobody|systemd-network|dbus|polkitd|sshd|postfix|chrony|apache|mysql|nginx|postgres|ntp|johns|d3cline|sean|klynton|ryans|postgres|mysql|timg|djl|maryh|nickr|iliasr|peterd|marcush|aaront|muhammadp|bjornm|ph|sites|apps)$).+$
+          type: string
+        password:
+          maxLength: 64
+          minLength: 10
+          type: string
+        external:
+          type: boolean
+    MariaUserRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    MariaUserResponse:
+      required:
+      - id
+      - name
+      - ready
+      - server
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+        server:
+          type: string
+          format: uuid
+        external:
+          type: boolean
+          default: false
+      example:
+        server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        external: false
+        ready: true
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+    MariaUserUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        password:
+          maxLength: 64
+          minLength: 10
+          type: string
+        external:
+          type: boolean
+    NoticeCreate:
+      required:
+      - content
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/NoticeTypeEnum'
+        content:
+          pattern: ^((?!.*\".*).)*$
+          type: string
+    NoticeRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    NoticeResponse:
+      required:
+      - content
+      - created_at
+      - id
+      - type
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/NoticeTypeEnum'
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      example:
+        created_at: 2000-01-23T04:56:07.000+00:00
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: M
+        content: content
+    NoticeTypeEnum:
+      type: string
+      enum:
+      - M
+      - P
+      - D
+      - R
+    NoticeUpdate:
+      required:
+      - content
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/NoticeTypeEnum'
+        content:
+          pattern: ^((?!.*\".*).)*$
+          type: string
+    OSUserCreate:
+      required:
+      - server
+      type: object
+      properties:
+        server:
+          type: string
+          format: uuid
+        name:
+          maxLength: 16
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+        password:
+          maxLength: 64
+          minLength: 10
+          type: string
+    OSUserRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    OSUserResponse:
+      required:
+      - id
+      - name
+      - ready
+      - server
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+        server:
+          type: string
+          format: uuid
+      example:
+        server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        ready: true
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+    OSUserUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        password:
+          maxLength: 64
+          minLength: 10
+          type: string
+    OSVarCreate:
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          maxLength: 128
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+        content:
+          maxLength: 1024
+          type: string
+        osusers:
+          type: array
+          items:
+            type: string
+            format: uuid
+        global:
+          type: boolean
+    OSVarRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    OSVarResponse:
+      required:
+      - content
+      - global
+      - id
+      - name
+      - osusers
+      - ready
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+        content:
+          type: string
+        osusers:
+          type: array
+          items:
+            type: string
+            format: uuid
+        global:
+          type: boolean
+      example:
+        osusers:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        ready: true
+        name: name
+        global: true
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+        content: content
+    OSVarUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        content:
+          maxLength: 1024
+          type: string
+        osusers:
+          type: array
+          items:
+            type: string
+            format: uuid
+        global:
+          type: boolean
+    PsqlCharset:
+      type: string
+      enum:
+      - utf8
+      - euc_cn
+      - euc_jis_2004
+      - euc_jp
+      - euc_kr
+      - euc_tw
+      - iso_8859_5
+      - iso_8859_6
+      - iso_8859_7
+      - iso_8859_8
+      - koi8r
+      - koi8u
+      - latin1
+      - latin2
+      - latin3
+      - latin4
+      - latin5
+      - latin6
+      - latin7
+      - latin8
+      - latin9
+      - latin10
+      - sql_ascii
+      - win866
+      - win874
+      - win1250
+      - win1251
+      - win1252
+      - win1253
+      - win1254
+      - win1255
+      - win1256
+      - win1257
+      - win1258
+    PsqlDBCreate:
+      required:
+      - name
+      - server
+      type: object
+      properties:
+        name:
+          maxLength: 32
+          pattern: ^(?!pg_.*).*$
+          type: string
+        server:
+          type: string
+          format: uuid
+        charset:
+          $ref: '#/components/schemas/PsqlCharset'
+        dbusers_readwrite:
+          type: array
+          items:
+            type: string
+            format: uuid
+        dbusers_readonly:
+          type: array
+          items:
+            type: string
+            format: uuid
+    PsqlDBRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    PsqlDBResponse:
+      required:
+      - charset
+      - dbusers_readonly
+      - dbusers_readwrite
+      - id
+      - name
+      - ready
+      - server
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+        server:
+          type: string
+          format: uuid
+        charset:
+          $ref: '#/components/schemas/PsqlCharset'
+        dbusers_readwrite:
+          type: array
+          items:
+            type: string
+            format: uuid
+        dbusers_readonly:
+          type: array
+          items:
+            type: string
+            format: uuid
+      example:
+        server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        charset: utf8
+        ready: true
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+        dbusers_readwrite:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        dbusers_readonly:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+    PsqlDBUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dbusers_readwrite:
+          type: array
+          items:
+            type: string
+            format: uuid
+        dbusers_readonly:
+          type: array
+          items:
+            type: string
+            format: uuid
+    PsqlUserCreate:
+      required:
+      - name
+      - server
+      type: object
+      properties:
+        server:
+          type: string
+          format: uuid
+        name:
+          maxLength: 32
+          pattern: ^(?!pg_.*).*$
+          type: string
+        password:
+          maxLength: 64
+          minLength: 10
+          type: string
+        external:
+          type: boolean
+    PsqlUserRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    PsqlUserResponse:
+      required:
+      - id
+      - name
+      - ready
+      - server
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+        server:
+          type: string
+          format: uuid
+        external:
+          type: boolean
+          default: false
+      example:
+        server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        external: false
+        ready: true
+        name: name
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+    PsqlUserUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        password:
+          maxLength: 64
+          minLength: 10
+          type: string
+        external:
+          type: boolean
+    QuarantinedMailRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    QuarantinedMailResponse:
+      required:
+      - arrival_time
+      - body
+      - client_address
+      - id
+      - message_size_bytes
+      - queue_id
+      - ready
+      - recipients
+      - sasl_username
+      - sender
+      - smtp_server
+      - spam_score
+      - spam_status
+      - state
+      - subject
+      - train
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/QuarantinedMailStateEnum'
+        ready:
+          type: boolean
+        smtp_server:
+          type: string
+          format: uuid
+        queue_id:
+          type: string
+        arrival_time:
+          type: string
+          format: date-time
+        message_size_bytes:
+          type: integer
+        client_address:
+          type: string
+        sasl_username:
+          type: string
+        sender:
+          type: string
+          format: email
+        recipients:
+          type: array
+          items:
+            type: string
+            format: email
+        spam_status:
+          type: boolean
+        spam_score:
+          type: number
+          format: float
+        subject:
+          type: string
+        body:
+          type: string
+        train:
+          type: boolean
+      example:
+        spam_status: true
+        arrival_time: 2000-01-23T04:56:07.000+00:00
+        subject: subject
+        body: body
+        smtp_server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        sender: ""
+        ready: true
+        recipients:
+        - ""
+        - ""
+        message_size_bytes: 0
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: HELD
+        client_address: client_address
+        spam_score: 6.0274563
+        sasl_username: sasl_username
+        queue_id: queue_id
+        train: true
+    QuarantinedMailStateEnum:
+      type: string
+      enum:
+      - HELD
+      - PENDING_HOLD
+      - PENDING_QUARANTINE
+      - QUARANTINED
+      - AWAITING_REVIEW
+      - PENDING_RELEASE
+      - PENDING_DELETE
+    QuarantinedMailUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    Route:
+      required:
+      - app
+      type: object
+      properties:
+        uri:
+          maxLength: 255
+          minLength: 1
+          type: string
+        app:
+          type: string
+          format: uuid
+    RouteResponse:
+      required:
+      - app
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        app:
+          type: string
+          format: uuid
+        uri:
+          type: string
+          default: /
+      example:
+        app: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        uri: /
+    ServerListResponse:
+      required:
+      - imap_servers
+      - smtp_servers
+      - web_servers
+      type: object
+      properties:
+        web_servers:
+          type: array
+          items:
+            $ref: '#/components/schemas/WebServerReadResponse'
+        imap_servers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImapServerReadResponse'
+        smtp_servers:
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpServerReadResponse'
+      example:
+        imap_servers:
+        - hostname: imap1.us.opalstack.com
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: imap
+        - hostname: imap1.us.opalstack.com
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: imap
+        web_servers:
+        - hostname: opal1.opalstack.com
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: web
+        - hostname: opal1.opalstack.com
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: web
+        smtp_servers:
+        - hostname: smtp1.us.opalstack.com
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: smtp
+        - hostname: smtp1.us.opalstack.com
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          type: smtp
+    SharedCertResponse:
+      required:
+      - cert
+      - exp_date
+      - id
+      - intermediates
+      - listed_domains
+      - name
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        cert:
+          type: string
+        intermediates:
+          type: string
+        exp_date:
+          type: string
+          format: date-time
+        listed_domains:
+          type: array
+          items:
+            type: string
+        is_opalstack_letsencrypt:
+          type: boolean
+          default: true
+        is_opalstack_shared_cert:
+          type: boolean
+          default: true
+      example:
+        is_opalstack_letsencrypt: true
+        listed_domains:
+        - listed_domains
+        - listed_domains
+        name: name
+        is_opalstack_shared_cert: true
+        cert: cert
+        exp_date: 2000-01-23T04:56:07.000+00:00
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        intermediates: intermediates
+    Signin:
+      required:
+      - password
+      - username
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          minLength: 8
+          type: string
+    SigninResponse:
+      required:
+      - token
+      type: object
+      properties:
+        redirect:
+          type: string
+          default: /
+        token:
+          type: string
+      example:
+        redirect: /
+        token: token
+    SiteCreate:
+      required:
+      - domains
+      - routes
+      type: object
+      properties:
+        name:
+          maxLength: 225
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+        ip4:
+          type: string
+          format: uuid
+          nullable: true
+        ip6:
+          type: string
+          format: uuid
+          nullable: true
+        domains:
+          type: array
+          items:
+            type: string
+            format: uuid
+        routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Route'
+        cert:
+          type: string
+          format: uuid
+          nullable: true
+        redirect:
+          type: boolean
+          description: Automatically redirect to https://
+        generate_le:
+          type: boolean
+          description: Automatically issue Lets Encrypt certificate for the domains
+            on this site?
+        le_http_challenge_tokens:
+          maxItems: 128
+          type: array
+          items:
+            maxLength: 128
+            type: string
+        disabled:
+          type: boolean
+    SiteRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    SiteResponse:
+      required:
+      - cert
+      - disabled
+      - domains
+      - generate_le
+      - id
+      - ip4
+      - ip6
+      - le_http_challenge_tokens
+      - name
+      - ready
+      - redirect
+      - routes
+      - server
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        name:
+          type: string
+        server:
+          type: string
+          format: uuid
+        ip4:
+          type: string
+          format: ipv4
+        ip6:
+          type: string
+          format: ipv6
+        disabled:
+          type: boolean
+        domains:
+          type: array
+          items:
+            type: string
+            format: uuid
+        routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/RouteResponse'
+        generate_le:
+          type: boolean
+        cert:
+          type: string
+          format: uuid
+        redirect:
+          type: boolean
+        le_http_challenge_tokens:
+          type: array
+          items:
+            type: string
+      example:
+        redirect: true
+        server: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        domains:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        cert: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        ip4: ip4
+        le_http_challenge_tokens:
+        - le_http_challenge_tokens
+        - le_http_challenge_tokens
+        ip6: ip6
+        routes:
+        - app: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          uri: /
+        - app: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+          uri: /
+        ready: true
+        name: name
+        generate_le: true
+        disabled: true
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+    SiteUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          maxLength: 225
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+        ip4:
+          type: string
+          format: uuid
+          nullable: true
+        ip6:
+          type: string
+          format: uuid
+          nullable: true
+        domains:
+          type: array
+          items:
+            type: string
+            format: uuid
+        routes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Route'
+        cert:
+          type: string
+          format: uuid
+          nullable: true
+        redirect:
+          type: boolean
+          description: Automatically redirect to https://
+        generate_le:
+          type: boolean
+          description: Automatically issue Lets Encrypt certificate for the domains
+            on this site?
+        le_http_challenge_tokens:
+          maxItems: 128
+          type: array
+          items:
+            maxLength: 128
+            type: string
+        disabled:
+          type: boolean
+    SmtpServerReadResponse:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+          default: smtp1.us.opalstack.com
+        type:
+          type: string
+          default: smtp
+      example:
+        hostname: smtp1.us.opalstack.com
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: smtp
+    StateEnum:
+      type: string
+      enum:
+      - READY
+      - PENDING_CREATE
+      - PENDING_UPDATE
+      - PENDING_DELETE
+    TokenCreate:
+      type: object
+      properties:
+        name:
+          maxLength: 64
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+    TokenRead:
+      required:
+      - key
+      type: object
+      properties:
+        key:
+          maxLength: 40
+          minLength: 40
+          type: string
+    TokenResponse:
+      required:
+      - key
+      - name
+      type: object
+      properties:
+        name:
+          type: string
+        key:
+          type: string
+      example:
+        name: name
+        key: key
+    TokenUpdate:
+      required:
+      - key
+      type: object
+      properties:
+        key:
+          maxLength: 40
+          minLength: 40
+          type: string
+        name:
+          maxLength: 64
+          pattern: "^[-a-zA-Z0-9_]+$"
+          type: string
+    VirtualAliasCreate:
+      required:
+      - forwards
+      - source
+      type: object
+      properties:
+        source:
+          maxLength: 255
+          minLength: 5
+          type: string
+          format: email
+        destinations:
+          type: array
+          items:
+            type: string
+            format: uuid
+        forwards:
+          type: array
+          items:
+            maxLength: 255
+            minLength: 5
+            type: string
+            format: email
+    VirtualAliasRead:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+    VirtualAliasResponse:
+      required:
+      - destinations
+      - forwards
+      - id
+      - ready
+      - source
+      - state
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/StateEnum'
+        ready:
+          type: boolean
+        source:
+          type: string
+          format: email
+        destinations:
+          type: array
+          items:
+            type: string
+            format: uuid
+        forwards:
+          type: array
+          items:
+            type: string
+            format: email
+      example:
+        forwards:
+        - ""
+        - ""
+        ready: true
+        destinations:
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        - 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        state: READY
+        source: ""
+    VirtualAliasUpdate:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source:
+          maxLength: 255
+          minLength: 5
+          type: string
+          format: email
+        destinations:
+          type: array
+          items:
+            type: string
+            format: uuid
+        forwards:
+          type: array
+          items:
+            maxLength: 255
+            minLength: 5
+            type: string
+            format: email
+    WebServerReadResponse:
+      required:
+      - id
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+          default: opal1.opalstack.com
+        type:
+          type: string
+          default: web
+      example:
+        hostname: opal1.opalstack.com
+        id: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        type: web
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      description: Token-based authentication with required prefix "Token"
+      name: Authorization
+      in: header
