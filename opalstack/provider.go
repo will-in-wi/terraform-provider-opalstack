@@ -33,6 +33,8 @@ func Provider() *schema.Provider {
 			"opalstack_server":      dataSourceServer(),
 			"opalstack_ips":         dataSourceIps(),
 			"opalstack_ip":          dataSourceIp(),
+			"opalstack_domains":     dataSourceDomains(),
+			"opalstack_domain":      dataSourceDomain(),
 			"opalstack_cert":        dataSourceCert(),
 			"opalstack_certs":       dataSourceCerts(),
 			"opalstack_cert_shared": dataSourceCertShared(),
