@@ -10,20 +10,14 @@ import (
 func dataSourceCert() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceCertRead,
-		Schema:      certificateSchema(true, true),
+		Schema:      certificateSchema(true),
 	}
 }
 
 func dataSourceCertRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	uuid, ok := d.GetOk("uuid")
-	if !ok {
-		return diag.Errorf("UUID for Cert is blank")
-	}
-	strUuid := uuid.(string)
-
-	certResponse, _, err := r.client.CertApi.CertRead(*r.auth, strUuid)
+	certResponse, _, err := r.client.CertApi.CertRead(*r.auth, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}

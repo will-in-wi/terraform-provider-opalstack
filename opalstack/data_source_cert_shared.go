@@ -11,7 +11,7 @@ import (
 func dataSourceCertShared() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceCertSharedRead,
-		Schema:      certificateSchema(false, false),
+		Schema:      certificateSchema(false),
 	}
 }
 
@@ -25,7 +25,6 @@ func dataSourceCertSharedRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
-	d.Set("uuid", certResponse.Id)
 	d.Set("name", certResponse.Name)
 	d.Set("cert", certResponse.Cert)
 	d.Set("intermediates", certResponse.Intermediates)

@@ -17,7 +17,7 @@ func dataSourceNotices() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"uuid": {
+						"id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -55,7 +55,7 @@ func dataSourceNoticesRead(ctx context.Context, d *schema.ResourceData, m interf
 	for _, elem := range noticeResponse {
 		uuids = append(uuids, elem.Id)
 		notices = append(notices, map[string]interface{}{
-			"uuid":       elem.Id,
+			"id":         elem.Id,
 			"type":       elem.Type_,
 			"content":    elem.Content,
 			"created_at": elem.CreatedAt.Format(time.RFC3339),

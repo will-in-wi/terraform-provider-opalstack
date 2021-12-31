@@ -9,6 +9,12 @@ import (
 )
 
 func dataSourceCerts() *schema.Resource {
+	certSchema := certificateSchema(true)
+	certSchema["id"] = &schema.Schema{
+		Type:     schema.TypeString,
+		Computed: true,
+	}
+
 	return &schema.Resource{
 		ReadContext: dataSourceCertsRead,
 		Schema: map[string]*schema.Schema{
@@ -16,7 +22,7 @@ func dataSourceCerts() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: certificateSchema(false, true),
+					Schema: certSchema,
 				},
 			},
 		},
@@ -38,7 +44,7 @@ func dataSourceCertsRead(ctx context.Context, d *schema.ResourceData, m interfac
 	for _, elem := range certResponse {
 		uuids = append(uuids, elem.Id)
 		certs = append(certs, map[string]interface{}{
-			"uuid":                     elem.Id,
+			"id":                       elem.Id,
 			"name":                     elem.Name,
 			"cert":                     elem.Cert,
 			"intermediates":            elem.Intermediates,

@@ -7,13 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func certificateSchema(uuidRequired, keyIncluded bool) map[string]*schema.Schema {
+func certificateSchema(keyIncluded bool) map[string]*schema.Schema {
 	fields := map[string]*schema.Schema{
-		"uuid": {
-			Type:     schema.TypeString,
-			Required: uuidRequired,
-			Computed: !uuidRequired,
-		},
 		"name": {
 			Type:     schema.TypeString,
 			Computed: true,
