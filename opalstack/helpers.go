@@ -18,3 +18,13 @@ func generateIdFromList(strs []string) string {
 	hash := sha256.Sum256([]byte(joinedString))
 	return fmt.Sprintf("%x", hash)
 }
+
+func arrayContains(haystack []string, needle string) bool {
+	for _, s := range haystack {
+		if s == needle {
+			return true
+		}
+	}
+
+	return false
+}

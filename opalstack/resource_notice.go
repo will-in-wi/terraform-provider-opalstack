@@ -9,6 +9,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+func allowedTypes() []string {
+	return []string{
+		// See swagger/model_notice_type_enum.go for list.
+		"M", // Message
+		"P", // Password Change
+		"D", // Default Password
+		"R", // Resource Overage
+	}
+}
+
 func resourceNotice() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceNoticeCreate,
@@ -17,8 +27,9 @@ func resourceNotice() *schema.Resource {
 		DeleteContext: resourceNoticeDelete,
 		Schema: map[string]*schema.Schema{
 			"type": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validateStringInList(allowedTypes()),
 			},
 			"content": {
 				Type:     schema.TypeString,
@@ -43,9 +54,11 @@ func resourceNotice() *schema.Resource {
 func resourceNoticeCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
+	noticeType := swagger.NoticeTypeEnum(d.Get("type").(string))
+
 	body := []swagger.NoticeCreate{
 		{
-			Type_:   d.Get("type").(*swagger.NoticeTypeEnum),
+			Type_:   &noticeType,
 			Content: d.Get("content").(string),
 		},
 	}
@@ -82,10 +95,11 @@ func resourceNoticeUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	r := m.(*requester)
 
 	if d.HasChangesExcept("last_updated") {
+		noticeType := swagger.NoticeTypeEnum(d.Get("type").(string))
 		body := []swagger.NoticeUpdate{
 			{
 				Id:      d.Id(),
-				Type_:   d.Get("type").(*swagger.NoticeTypeEnum),
+				Type_:   &noticeType,
 				Content: d.Get("content").(string),
 			},
 		}
