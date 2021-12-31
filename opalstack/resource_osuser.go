@@ -27,9 +27,9 @@ func resourceOsuser() *schema.Resource {
 				ForceNew: true,
 			},
 			"password": {
-				Type:     schema.TypeString,
-				Optional: true,
-				// TODO: Make this secret.
+				Type:      schema.TypeString,
+				Optional:  true,
+				Sensitive: true,
 			},
 			"ready": {
 				Type:     schema.TypeBool,
