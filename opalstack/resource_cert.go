@@ -65,7 +65,7 @@ func resourceCertCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 	certResponse, _, err := r.client.CertApi.CertCreate(*r.auth, body)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId(certResponse[0].Id)
@@ -81,7 +81,7 @@ func resourceCertRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 	certResponse, _, err := r.client.CertApi.CertRead(*r.auth, d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	populateFromCertResponse(d, certResponse)
@@ -105,7 +105,7 @@ func resourceCertUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		_, _, err := r.client.CertApi.CertUpdate(*r.auth, body)
 		if err != nil {
-			return diag.FromErr(err)
+			return handleSwaggerError(err)
 		}
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
@@ -122,7 +122,7 @@ func resourceCertDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 	_, err := r.client.CertApi.CertDelete(*r.auth, []swagger.CertRead{{Id: d.Id()}})
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId("")

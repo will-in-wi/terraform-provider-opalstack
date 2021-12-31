@@ -37,7 +37,7 @@ func dataSourceServersRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	serversResponse, _, err := r.client.ServerApi.ServerList(*r.auth)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	uuids := make([]string, 0, len(serversResponse.ImapServers)+len(serversResponse.SmtpServers)+len(serversResponse.WebServers))

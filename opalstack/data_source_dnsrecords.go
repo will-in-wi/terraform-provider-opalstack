@@ -27,7 +27,7 @@ func dataSourceDnsrecordsRead(ctx context.Context, d *schema.ResourceData, m int
 
 	dnsrecordsResponse, _, err := r.client.DnsrecordApi.DnsrecordList(*r.auth)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	uuids := make([]string, 0, len(dnsrecordsResponse))

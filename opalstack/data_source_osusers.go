@@ -27,7 +27,7 @@ func dataSourceOsusersRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	osusersResponse, _, err := r.client.OsuserApi.OsuserList(*r.auth)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	uuids := make([]string, 0, len(osusersResponse))

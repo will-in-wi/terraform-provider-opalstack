@@ -27,7 +27,7 @@ func dataSourceIpsRead(ctx context.Context, d *schema.ResourceData, m interface{
 
 	ipsResponse, _, err := r.client.IpApi.IpList(*r.auth)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	uuids := make([]string, 0, len(ipsResponse))

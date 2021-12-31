@@ -22,7 +22,7 @@ func dataSourceCertSharedRead(ctx context.Context, d *schema.ResourceData, m int
 
 	certResponse, _, err := r.client.CertApi.CertShared(*r.auth)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("name", certResponse.Name)

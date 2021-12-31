@@ -48,7 +48,7 @@ func resourceDomainCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	domainResponse, _, err := r.client.DomainApi.DomainCreate(*r.auth, body)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId(domainResponse[0].Id)
@@ -68,7 +68,7 @@ func resourceDomainRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	domainResponse, _, err := r.client.DomainApi.DomainRead(*r.auth, d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("name", domainResponse.Name)
@@ -83,7 +83,7 @@ func resourceDomainDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	_, err := r.client.DomainApi.DomainDelete(*r.auth, []swagger.DomainDelete{{Id: d.Id()}})
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId("")

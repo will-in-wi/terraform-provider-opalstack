@@ -36,7 +36,7 @@ func dataSourceCertsRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	certResponse, _, err := r.client.CertApi.CertList(*r.auth)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	certs := make([]map[string]interface{}, 0, len(certResponse))

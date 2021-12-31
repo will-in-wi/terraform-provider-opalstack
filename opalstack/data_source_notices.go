@@ -47,7 +47,7 @@ func dataSourceNoticesRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	noticeResponse, _, err := r.client.NoticeApi.NoticeList(*r.auth)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	notices := make([]map[string]interface{}, 0, len(noticeResponse))

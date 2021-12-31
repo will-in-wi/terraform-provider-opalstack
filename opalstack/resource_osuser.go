@@ -56,7 +56,7 @@ func resourceOsuserCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	osuserResponse, _, err := r.client.OsuserApi.OsuserCreate(*r.auth, []swagger.OsUserCreate{create})
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId(osuserResponse[0].Id)
@@ -78,7 +78,7 @@ func resourceOsuserRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	osuserResponse, _, err := r.client.OsuserApi.OsuserRead(*r.auth, d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("server", osuserResponse.Server)
@@ -98,7 +98,7 @@ func resourceOsuserUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		_, _, err := r.client.OsuserApi.OsuserUpdate(*r.auth, []swagger.OsUserUpdate{update})
 		if err != nil {
-			return diag.FromErr(err)
+			return handleSwaggerError(err)
 		}
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
@@ -120,7 +120,7 @@ func resourceOsuserDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	_, err := r.client.OsuserApi.OsuserDelete(*r.auth, []swagger.OsUserRead{{Id: d.Id()}})
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId("")

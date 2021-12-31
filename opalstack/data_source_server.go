@@ -21,7 +21,7 @@ func dataSourceServerRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	serverResponse, _, err := r.client.ServerApi.ServerRead(*r.auth, d.Get("id").(string))
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("hostname", serverResponse.Hostname)

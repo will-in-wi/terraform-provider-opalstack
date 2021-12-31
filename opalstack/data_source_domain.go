@@ -19,7 +19,7 @@ func dataSourceDomainRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	domainResponse, _, err := r.client.DomainApi.DomainRead(*r.auth, d.Get("id").(string))
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("state", domainResponse.State)

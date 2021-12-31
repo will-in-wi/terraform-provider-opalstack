@@ -65,7 +65,7 @@ func resourceNoticeCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	certResponse, _, err := r.client.NoticeApi.NoticeCreate(*r.auth, body)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId(certResponse[0].Id)
@@ -81,7 +81,7 @@ func resourceNoticeRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	noticeResponse, _, err := r.client.NoticeApi.NoticeRead(*r.auth, d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("type", noticeResponse.Type_)
@@ -106,7 +106,7 @@ func resourceNoticeUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		_, _, err := r.client.NoticeApi.NoticeUpdate(*r.auth, body)
 		if err != nil {
-			return diag.FromErr(err)
+			return handleSwaggerError(err)
 		}
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
@@ -123,7 +123,7 @@ func resourceNoticeDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	_, err := r.client.NoticeApi.NoticeDelete(*r.auth, []swagger.NoticeRead{{Id: d.Id()}})
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId("")

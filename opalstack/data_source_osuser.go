@@ -21,7 +21,7 @@ func dataSourceOsuserRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	osuserResponse, _, err := r.client.OsuserApi.OsuserRead(*r.auth, d.Get("id").(string))
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("state", osuserResponse.State)

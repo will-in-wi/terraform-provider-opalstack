@@ -65,7 +65,7 @@ func dataSourceAccountRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	accountResponse, _, err := r.client.AccountApi.AccountInfo(*r.auth)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("state", accountResponse.State)

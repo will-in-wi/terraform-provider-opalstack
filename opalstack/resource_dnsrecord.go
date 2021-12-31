@@ -80,7 +80,7 @@ func resourceDnsrecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 	dnsrecordResponse, _, err := r.client.DnsrecordApi.DnsrecordCreate(*r.auth, []swagger.DnsRecordCreate{create})
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId(dnsrecordResponse[0].Id)
@@ -102,7 +102,7 @@ func resourceDnsrecordRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	dnsrecordResponse, _, err := r.client.DnsrecordApi.DnsrecordRead(*r.auth, d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("domain", dnsrecordResponse.Domain)
@@ -130,7 +130,7 @@ func resourceDnsrecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 		_, _, err := r.client.DnsrecordApi.DnsrecordUpdate(*r.auth, []swagger.DnsRecordUpdate{update})
 		if err != nil {
-			return diag.FromErr(err)
+			return handleSwaggerError(err)
 		}
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
@@ -152,7 +152,7 @@ func resourceDnsrecordDelete(ctx context.Context, d *schema.ResourceData, m inte
 
 	_, err := r.client.DnsrecordApi.DnsrecordDelete(*r.auth, []swagger.DnsRecordRead{{Id: d.Id()}})
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.SetId("")

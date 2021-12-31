@@ -19,7 +19,7 @@ func dataSourceCertRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	certResponse, _, err := r.client.CertApi.CertRead(*r.auth, d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	populateFromCertResponse(d, certResponse)

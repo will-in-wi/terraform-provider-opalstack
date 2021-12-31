@@ -21,7 +21,7 @@ func dataSourceDnsrecordRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	dnsrecordResponse, _, err := r.client.DnsrecordApi.DnsrecordRead(*r.auth, d.Get("id").(string))
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("id", dnsrecordResponse.Id)

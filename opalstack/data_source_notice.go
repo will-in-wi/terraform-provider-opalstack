@@ -33,7 +33,7 @@ func dataSourceNoticeRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	noticeResponse, _, err := r.client.NoticeApi.NoticeRead(*r.auth, d.Id())
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("type", noticeResponse.Type_)

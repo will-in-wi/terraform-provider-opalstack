@@ -21,7 +21,7 @@ func dataSourceIpRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 	ipResponse, _, err := r.client.IpApi.IpRead(*r.auth, d.Get("id").(string))
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	d.Set("ip", ipResponse.Ip)

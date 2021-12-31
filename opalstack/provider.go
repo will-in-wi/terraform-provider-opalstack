@@ -27,6 +27,7 @@ func Provider() *schema.Provider {
 			"opalstack_domain":    resourceDomain(),
 			"opalstack_dnsrecord": resourceDnsrecord(),
 			"opalstack_osuser":    resourceOsuser(),
+			"opalstack_osvar":     resourceOsvar(),
 			"opalstack_cert":      resourceCert(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
@@ -43,6 +44,8 @@ func Provider() *schema.Provider {
 			"opalstack_account":     dataSourceAccount(),
 			"opalstack_osusers":     dataSourceOsusers(),
 			"opalstack_osuser":      dataSourceOsuser(),
+			"opalstack_osvars":      dataSourceOsvars(),
+			"opalstack_osvar":       dataSourceOsvar(),
 			"opalstack_cert":        dataSourceCert(),
 			"opalstack_certs":       dataSourceCerts(),
 			"opalstack_cert_shared": dataSourceCertShared(),

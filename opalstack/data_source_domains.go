@@ -25,7 +25,7 @@ func dataSourceDomainsRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	domainsResponse, _, err := r.client.DomainApi.DomainList(*r.auth)
 	if err != nil {
-		return diag.FromErr(err)
+		return handleSwaggerError(err)
 	}
 
 	uuids := make([]string, 0, len(domainsResponse))
