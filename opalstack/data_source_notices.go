@@ -2,6 +2,7 @@ package opalstack
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -57,7 +58,7 @@ func dataSourceNoticesRead(ctx context.Context, d *schema.ResourceData, m interf
 			"uuid":       elem.Id,
 			"type":       elem.Type_,
 			"content":    elem.Content,
-			"created_at": elem.CreatedAt,
+			"created_at": elem.CreatedAt.Format(time.RFC3339),
 		})
 	}
 

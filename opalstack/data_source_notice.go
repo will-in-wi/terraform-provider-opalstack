@@ -2,6 +2,7 @@ package opalstack
 
 import (
 	"context"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -13,7 +14,7 @@ func dataSourceNotice() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"uuid": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 			"type": {
 				Type:     schema.TypeString,
@@ -48,7 +49,7 @@ func dataSourceNoticeRead(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("uuid", noticeResponse.Id)
 	d.Set("type", noticeResponse.Type_)
 	d.Set("content", noticeResponse.Content)
-	d.Set("created_at", noticeResponse.CreatedAt)
+	d.Set("created_at", noticeResponse.CreatedAt.Format(time.RFC3339))
 	d.SetId(noticeResponse.Id)
 
 	return diag.Diagnostics{}
