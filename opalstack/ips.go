@@ -2,14 +2,18 @@ package opalstack
 
 import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-func serverSchema(idRequired bool) map[string]*schema.Schema {
-	s := map[string]*schema.Schema{
+func ipSchema(idRequired bool) map[string]*schema.Schema {
+	return map[string]*schema.Schema{
 		"id": {
 			Type:     schema.TypeString,
 			Computed: !idRequired,
 			Required: idRequired,
 		},
-		"hostname": {
+		"ip": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"server": {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
@@ -17,7 +21,9 @@ func serverSchema(idRequired bool) map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
+		"primary": {
+			Type:     schema.TypeBool,
+			Computed: true,
+		},
 	}
-
-	return s
 }
