@@ -40,6 +40,8 @@ func Provider() *schema.Provider {
 			"opalstack_dnsrecords":  dataSourceDnsrecords(),
 			"opalstack_dnsrecord":   dataSourceDnsrecord(),
 			"opalstack_account":     dataSourceAccount(),
+			"opalstack_osusers":     dataSourceOsusers(),
+			"opalstack_osuser":      dataSourceOsuser(),
 			"opalstack_cert":        dataSourceCert(),
 			"opalstack_certs":       dataSourceCerts(),
 			"opalstack_cert_shared": dataSourceCertShared(),
