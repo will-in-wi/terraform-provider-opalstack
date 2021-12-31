@@ -23,9 +23,10 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"opalstack_notice": resourceNotice(),
-			"opalstack_domain": resourceDomain(),
-			"opalstack_cert":   resourceCert(),
+			"opalstack_notice":    resourceNotice(),
+			"opalstack_domain":    resourceDomain(),
+			"opalstack_dnsrecord": resourceDnsrecord(),
+			"opalstack_cert":      resourceCert(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"opalstack_notices":     dataSourceNotices(),

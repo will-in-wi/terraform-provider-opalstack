@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func allowedTypes() []string {
+func allowedNoticeTypes() []string {
 	return []string{
 		// See swagger/model_notice_type_enum.go for list.
 		"M", // Message
@@ -29,7 +29,7 @@ func resourceNotice() *schema.Resource {
 			"type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringInList(allowedTypes()),
+				ValidateFunc: validateStringInList(allowedNoticeTypes()),
 			},
 			"content": {
 				Type:     schema.TypeString,
