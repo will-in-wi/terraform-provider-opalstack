@@ -2,10 +2,12 @@ package opalstack
 
 import (
 	"context"
+	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -30,14 +32,6 @@ func resourceOsuser() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
-			},
-			"ready": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"state": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"last_updated": {
 				Type:     schema.TypeString,
@@ -66,6 +60,12 @@ func resourceOsuserCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	d.SetId(osuserResponse[0].Id)
+
+	retryErr := waitForOsuserReady(ctx, d, r)
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for user to be created: %s", retryErr)
+	}
+
 	resourceOsuserRead(ctx, d, m)
 
 	return diag.Diagnostics{}
@@ -83,8 +83,6 @@ func resourceOsuserRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	d.Set("server", osuserResponse.Server)
 	d.Set("name", osuserResponse.Name)
-	d.Set("ready", osuserResponse.Ready)
-	d.Set("state", osuserResponse.State)
 
 	return diags
 }
@@ -104,6 +102,11 @@ func resourceOsuserUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 		}
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
+
+		retryErr := waitForOsuserReady(ctx, d, r)
+		if retryErr != nil {
+			return diag.Errorf("failed with error while waiting for user to be updated: %s", retryErr)
+		}
 	}
 
 	return resourceOsuserRead(ctx, d, m)
@@ -123,4 +126,20 @@ func resourceOsuserDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	d.SetId("")
 
 	return diags
+}
+
+func waitForOsuserReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
+	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
+		var err error
+		osuserResponse, _, err := r.client.OsuserApi.OsuserRead(*r.auth, d.Id())
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if !osuserResponse.Ready {
+			return resource.RetryableError(fmt.Errorf("not ready yet"))
+		}
+
+		return nil
+	})
 }

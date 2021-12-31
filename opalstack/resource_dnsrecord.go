@@ -2,10 +2,12 @@ package opalstack
 
 import (
 	"context"
+	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -51,14 +53,6 @@ func resourceDnsrecord() *schema.Resource {
 				Optional: true,
 				Default:  3600,
 			},
-			"state": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"ready": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
 			"last_updated": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -90,6 +84,12 @@ func resourceDnsrecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	d.SetId(dnsrecordResponse[0].Id)
+
+	retryErr := waitForDnsrecordReady(ctx, d, r)
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for user to be updated: %s", retryErr)
+	}
+
 	resourceDnsrecordRead(ctx, d, m)
 
 	return diag.Diagnostics{}
@@ -110,8 +110,6 @@ func resourceDnsrecordRead(ctx context.Context, d *schema.ResourceData, m interf
 	d.Set("content", dnsrecordResponse.Content)
 	d.Set("priority", dnsrecordResponse.Priority)
 	d.Set("ttl", dnsrecordResponse.Ttl)
-	d.Set("state", dnsrecordResponse.State)
-	d.Set("ready", dnsrecordResponse.Ready)
 
 	return diags
 }
@@ -136,6 +134,11 @@ func resourceDnsrecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 		}
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
+
+		retryErr := waitForDnsrecordReady(ctx, d, r)
+		if retryErr != nil {
+			return diag.Errorf("failed with error while waiting for user to be updated: %s", retryErr)
+		}
 	}
 
 	return resourceDnsrecordRead(ctx, d, m)
@@ -155,4 +158,20 @@ func resourceDnsrecordDelete(ctx context.Context, d *schema.ResourceData, m inte
 	d.SetId("")
 
 	return diags
+}
+
+func waitForDnsrecordReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
+	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
+		var err error
+		dnsrecordResponse, _, err := r.client.DnsrecordApi.DnsrecordRead(*r.auth, d.Id())
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if !dnsrecordResponse.Ready {
+			return resource.RetryableError(fmt.Errorf("not ready yet"))
+		}
+
+		return nil
+	})
 }
