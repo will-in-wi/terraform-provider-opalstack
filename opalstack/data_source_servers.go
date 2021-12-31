@@ -14,17 +14,17 @@ func dataSourceServers() *schema.Resource {
 			"web_servers": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     &schema.Resource{Schema: serverSchema(true)},
+				Elem:     &schema.Resource{Schema: serverSchema(false)},
 			},
 			"imap_servers": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     &schema.Resource{Schema: serverSchema(true)},
+				Elem:     &schema.Resource{Schema: serverSchema(false)},
 			},
 			"smtp_servers": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem:     &schema.Resource{Schema: serverSchema(true)},
+				Elem:     &schema.Resource{Schema: serverSchema(false)},
 			},
 		},
 	}
