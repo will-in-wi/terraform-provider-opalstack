@@ -77,19 +77,11 @@ func resourceDnsrecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 	dnsrecordType := swagger.DnsRecordTypeEnum(d.Get("type").(string))
 
 	create := swagger.DnsRecordCreate{
-		Domain:  d.Get("domain").(string),
-		Type_:   &dnsrecordType,
-		Content: d.Get("content").(string),
-	}
-
-	priority, ok := d.GetOk("priority")
-	if ok {
-		create.Priority = int32(priority.(int))
-	}
-
-	ttl, ok := d.GetOk("ttl")
-	if ok {
-		create.Ttl = int32(ttl.(int))
+		Domain:   d.Get("domain").(string),
+		Type_:    &dnsrecordType,
+		Content:  d.Get("content").(string),
+		Priority: int32(d.Get("priority").(int)),
+		Ttl:      int32(d.Get("ttl").(int)),
 	}
 
 	dnsrecordResponse, _, err := r.client.DnsrecordApi.DnsrecordCreate(*r.auth, []swagger.DnsRecordCreate{create})
@@ -130,20 +122,12 @@ func resourceDnsrecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 	if d.HasChangesExcept("last_updated") {
 		dnsrecordType := swagger.DnsRecordTypeEnum(d.Get("type").(string))
 		update := swagger.DnsRecordUpdate{
-			Id:      d.Id(),
-			Domain:  d.Get("domain").(string),
-			Type_:   &dnsrecordType,
-			Content: d.Get("content").(string),
-		}
-
-		priority, ok := d.GetOk("priority")
-		if ok {
-			update.Priority = int32(priority.(int))
-		}
-
-		ttl, ok := d.GetOk("ttl")
-		if ok {
-			update.Ttl = int32(ttl.(int))
+			Id:       d.Id(),
+			Domain:   d.Get("domain").(string),
+			Type_:    &dnsrecordType,
+			Content:  d.Get("content").(string),
+			Priority: int32(d.Get("priority").(int)),
+			Ttl:      int32(d.Get("ttl").(int)),
 		}
 
 		_, _, err := r.client.DnsrecordApi.DnsrecordUpdate(*r.auth, []swagger.DnsRecordUpdate{update})
