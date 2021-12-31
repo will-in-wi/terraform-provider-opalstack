@@ -23,7 +23,7 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			// "hashicups_order": resourceOrder(),
+			"opalstack_cert": resourceCert(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"opalstack_cert":        dataSourceCert(),
