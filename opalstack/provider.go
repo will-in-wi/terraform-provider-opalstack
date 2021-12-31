@@ -29,6 +29,7 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"opalstack_notices":     dataSourceNotices(),
 			"opalstack_notice":      dataSourceNotice(),
+			"opalstack_servers":     dataSourceServers(),
 			"opalstack_cert":        dataSourceCert(),
 			"opalstack_certs":       dataSourceCerts(),
 			"opalstack_cert_shared": dataSourceCertShared(),
