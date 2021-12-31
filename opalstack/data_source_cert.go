@@ -17,16 +17,9 @@ func dataSourceCert() *schema.Resource {
 func dataSourceCertRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	uuid, ok := d.GetOk("uuid")
 	if !ok {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "UUID for Cert is blank",
-			Detail:   "UUID for certificate data source is not set",
-		})
-		return diags
+		return diag.Errorf("UUID for Cert is blank")
 	}
 	strUuid := uuid.(string)
 
@@ -38,5 +31,5 @@ func dataSourceCertRead(ctx context.Context, d *schema.ResourceData, m interface
 	populateFromCertResponse(d, certResponse)
 	d.SetId(certResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

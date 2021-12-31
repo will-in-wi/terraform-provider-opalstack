@@ -2,9 +2,6 @@ package opalstack
 
 import (
 	"context"
-	"crypto/sha256"
-	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -53,16 +50,10 @@ func dataSourceCertsRead(ctx context.Context, d *schema.ResourceData, m interfac
 		})
 	}
 
-	d.SetId(generateId(uuids))
+	d.SetId(generateIdFromList(uuids))
 	if err := d.Set("certs", certs); err != nil {
 		return diag.Errorf("Unable to assign certs: %s", err)
 	}
 
 	return diags
-}
-
-func generateId(uuids []string) string {
-	joinedString := strings.Join(uuids, "")
-	hash := sha256.Sum256([]byte(joinedString))
-	return fmt.Sprintf("%x", hash)
 }
