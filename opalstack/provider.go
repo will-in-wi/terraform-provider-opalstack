@@ -49,6 +49,8 @@ func Provider() *schema.Provider {
 			"opalstack_osvar":       dataSourceOsvar(),
 			"opalstack_apps":        dataSourceApps(),
 			"opalstack_app":         dataSourceApp(),
+			"opalstack_sites":       dataSourceSites(),
+			"opalstack_site":        dataSourceSite(),
 			"opalstack_cert":        dataSourceCert(),
 			"opalstack_certs":       dataSourceCerts(),
 			"opalstack_cert_shared": dataSourceCertShared(),
