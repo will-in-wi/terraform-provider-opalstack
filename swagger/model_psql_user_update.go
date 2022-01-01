@@ -11,5 +11,6 @@ package swagger
 type PsqlUserUpdate struct {
 	Id       string `json:"id"`
 	Password string `json:"password,omitempty"`
-	External bool   `json:"external,omitempty"`
+	// Removed omitempty, since we don't have the concept of "unset". We need to be able to set this to false.
+	External bool `json:"external"`
 }
