@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func allowedAppTypes() []string {
@@ -46,7 +47,7 @@ func resourceApp() *schema.Resource {
 			"type": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateStringInList(allowedAppTypes()),
+				ValidateFunc: validation.StringInSlice(allowedAppTypes(), false),
 			},
 			"installer_url": {
 				Type:     schema.TypeString,

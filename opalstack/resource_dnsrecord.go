@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func allowedDnsrecordTypes() []string {
@@ -36,7 +37,7 @@ func resourceDnsrecord() *schema.Resource {
 			},
 			"type": {
 				Type:         schema.TypeString,
-				ValidateFunc: validateStringInList(allowedDnsrecordTypes()),
+				ValidateFunc: validation.StringInSlice(allowedDnsrecordTypes(), false),
 				Required:     true,
 			},
 			"content": {

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func allowedNoticeTypes() []string {
@@ -29,7 +30,7 @@ func resourceNotice() *schema.Resource {
 			"type": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringInList(allowedNoticeTypes()),
+				ValidateFunc: validation.StringInSlice(allowedNoticeTypes(), false),
 			},
 			"content": {
 				Type:     schema.TypeString,
