@@ -1,10 +1,9 @@
 package opalstack
 
 import (
-	"fmt"
 	"reflect"
-	"strconv"
 	"strings"
+	"terraform-provider-opalstack/swagger"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -58,12 +57,9 @@ func appsSchema(idRequired bool) map[string]*schema.Schema {
 	}
 }
 
-func jsonStructToFlatMap(json interface{}) map[string]string {
+func jsonStructToFlatMap(json swagger.ApplicationResponseJson) map[string]interface{} {
 	st := reflect.TypeOf(json)
-	if st.Kind() != reflect.Struct {
-		panic(fmt.Sprintf("Type being flat mapped is not struct, it is %s", st.Kind().String()))
-	}
-	fields := make(map[string]string, 0)
+	fields := make(map[string]interface{}, 0)
 	value := reflect.ValueOf(json)
 
 	for i := 0; i < st.NumField(); i++ {
@@ -71,38 +67,13 @@ func jsonStructToFlatMap(json interface{}) map[string]string {
 		tag := field.Tag.Get("json")
 		if tag != "" {
 			parts := strings.Split(tag, ",")
-			omitempty := arrayContains(parts[1:], "omitempty")
 			fieldName := parts[0]
-			fieldValue := valueToString(value.Field(i))
-			if fieldName != "" && (!omitempty || fieldValue != "") {
-				fields[fieldName] = fieldValue
+			field := value.Field(i)
+			if field.Type().Kind() != reflect.Ptr || !field.IsNil() {
+				fields[fieldName] = field.Interface()
 			}
 		}
 	}
 
 	return fields
-}
-
-func jsonToStringMap(json map[string]interface{}) map[string]string {
-	result := make(map[string]string)
-
-	for k, v := range json {
-		val := reflect.ValueOf(v)
-		result[k] = valueToString(val)
-	}
-
-	return result
-}
-
-func valueToString(v reflect.Value) string {
-	switch v.Type().Kind() {
-	case reflect.String:
-		return v.String()
-	case reflect.Int32, reflect.Int, reflect.Int16, reflect.Int8, reflect.Int64:
-		return strconv.Itoa(int(v.Int()))
-	case reflect.Bool:
-		return strconv.FormatBool(v.Bool())
-	default:
-		panic(fmt.Sprintf("Unhandled type: %s", v.Type().Name()))
-	}
 }

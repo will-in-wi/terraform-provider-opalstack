@@ -54,10 +54,118 @@ func resourceApp() *schema.Resource {
 				ForceNew: true,
 			},
 			"json": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				MinItems: 1,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"db_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"db_user": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"db_host": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"db_port": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"app_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"app_port": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"app_path": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"app_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"app_command": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"app_lang_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"sym_link_path": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"auto_site_url": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"app_exec": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"url_fopen": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"fpm_type": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"fpm_max_children": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"fpm_max_requests": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"fpm_start_servers": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"fpm_min_spare_servers": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"fpm_max_spare_servers": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"php_version": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+					},
 				},
 			},
 			"server": {
@@ -90,7 +198,7 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 		Osuser:       d.Get("osuser").(string),
 		Type_:        &appType,
 		InstallerUrl: d.Get("installer_url").(string),
-		Json:         jsonToStringMap(d.Get("json").(map[string]interface{})),
+		Json:         parseOutJson(d),
 	}
 
 	appResponse, _, err := r.client.AppApi.AppCreate(*r.auth, []swagger.ApplicationCreate{create})
@@ -140,7 +248,7 @@ func resourceAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 		update := swagger.ApplicationUpdate{
 			Id:    d.Id(),
 			Type_: &appType,
-			Json:  jsonToStringMap(d.Get("json").(map[string]interface{})),
+			Json:  parseOutJson(d),
 		}
 
 		_, _, err := r.client.AppApi.AppUpdate(*r.auth, []swagger.ApplicationUpdate{update})
@@ -189,4 +297,43 @@ func waitForAppReady(ctx context.Context, d *schema.ResourceData, r *requester) 
 
 		return nil
 	})
+}
+
+func jsonNames() []string {
+	return []string{
+		"db_name",
+		"db_user",
+		"db_host",
+		"db_port",
+		"app_name",
+		"app_port",
+		"app_path",
+		"app_version",
+		"app_command",
+		"app_lang_version",
+		"sym_link_path",
+		"auto_site_url",
+		"app_exec",
+		"url_fopen",
+		"fpm_type",
+		"fpm_max_children",
+		"fpm_max_requests",
+		"fpm_start_servers",
+		"fpm_min_spare_servers",
+		"fpm_max_spare_servers",
+		"php_version",
+	}
+}
+
+func parseOutJson(d *schema.ResourceData) map[string]interface{} {
+	jsonOut := make(map[string]interface{})
+
+	for _, fieldName := range jsonNames() {
+		val, ok := d.GetOk("json.0." + fieldName)
+		if ok {
+			jsonOut[fieldName] = val
+		}
+	}
+
+	return jsonOut
 }

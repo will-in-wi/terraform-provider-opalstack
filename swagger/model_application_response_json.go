@@ -9,25 +9,27 @@
 package swagger
 
 type ApplicationResponseJson struct {
-	DbName             string `json:"db_name"`
-	DbUser             string `json:"db_user"`
-	DbHost             string `json:"db_host"`
-	DbPort             int32  `json:"db_port,omitempty"`
-	AppName            string `json:"app_name"`
-	AppPort            int32  `json:"app_port,omitempty"`
-	AppPath            string `json:"app_path"`
-	AppVersion         string `json:"app_version"`
-	AppCommand         string `json:"app_command"`
-	AppLangVersion     string `json:"app_lang_version"`
-	SymLinkPath        string `json:"sym_link_path,omitempty"`
-	AutoSiteUrl        bool   `json:"auto_site_url"`
-	AppExec            bool   `json:"app_exec"`
-	UrlFopen           bool   `json:"url_fopen"`
-	FpmType            string `json:"fpm_type"`
-	FpmMaxChildren     int32  `json:"fpm_max_children,omitempty"`
-	FpmMaxRequests     int32  `json:"fpm_max_requests,omitempty"`
-	FpmStartServers    int32  `json:"fpm_start_servers,omitempty"`
-	FpmMinSpareServers int32  `json:"fpm_min_spare_servers,omitempty"`
-	FpmMaxSpareServers int32  `json:"fpm_max_spare_servers,omitempty"`
-	PhpVersion         int32  `json:"php_version,omitempty"`
+	// Modified from the default generated output to be able to handle missing keys properly.
+	// Turned all of these into pointers, so we understand the nil case.
+	DbName             *string `json:"db_name"`
+	DbUser             *string `json:"db_user"`
+	DbHost             *string `json:"db_host"`
+	DbPort             *int32  `json:"db_port,omitempty"`
+	AppName            *string `json:"app_name"`
+	AppPort            *int32  `json:"app_port,omitempty"`
+	AppPath            *string `json:"app_path"`
+	AppVersion         *string `json:"app_version"`
+	AppCommand         *string `json:"app_command"`
+	AppLangVersion     *string `json:"app_lang_version"`
+	SymLinkPath        *string `json:"sym_link_path,omitempty"`
+	AutoSiteUrl        *bool   `json:"auto_site_url"`
+	AppExec            *bool   `json:"app_exec"`
+	UrlFopen           *bool   `json:"url_fopen"`
+	FpmType            *string `json:"fpm_type"`
+	FpmMaxChildren     *int32  `json:"fpm_max_children,omitempty"`
+	FpmMaxRequests     *int32  `json:"fpm_max_requests,omitempty"`
+	FpmStartServers    *int32  `json:"fpm_start_servers,omitempty"`
+	FpmMinSpareServers *int32  `json:"fpm_min_spare_servers,omitempty"`
+	FpmMaxSpareServers *int32  `json:"fpm_max_spare_servers,omitempty"`
+	PhpVersion         *int32  `json:"php_version,omitempty"`
 }
