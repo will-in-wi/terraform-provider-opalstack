@@ -30,6 +30,7 @@ func Provider() *schema.Provider {
 			"opalstack_osvar":     resourceOsvar(),
 			"opalstack_app":       resourceApp(),
 			"opalstack_psqluser":  resourcePsqluser(),
+			"opalstack_psqldb":    resourcePsqldb(),
 			"opalstack_site":      resourceSite(),
 			"opalstack_cert":      resourceCert(),
 		},
