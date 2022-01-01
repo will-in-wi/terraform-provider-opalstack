@@ -83,6 +83,17 @@ func jsonStructToFlatMap(json interface{}) map[string]string {
 	return fields
 }
 
+func jsonToStringMap(json map[string]interface{}) map[string]string {
+	result := make(map[string]string)
+
+	for k, v := range json {
+		val := reflect.ValueOf(v)
+		result[k] = valueToString(val)
+	}
+
+	return result
+}
+
 func valueToString(v reflect.Value) string {
 	switch v.Type().Kind() {
 	case reflect.String:
