@@ -9,7 +9,8 @@
 package swagger
 
 type MariaDbUpdate struct {
-	Id               string   `json:"id"`
-	DbusersReadwrite []string `json:"dbusers_readwrite,omitempty"`
-	DbusersReadonly  []string `json:"dbusers_readonly,omitempty"`
+	Id string `json:"id"`
+	// Dropped omitempty from both of these, since they need to be able to blank out.
+	DbusersReadwrite []string `json:"dbusers_readwrite"`
+	DbusersReadonly  []string `json:"dbusers_readonly"`
 }
