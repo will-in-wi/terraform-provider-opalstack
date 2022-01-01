@@ -54,6 +54,8 @@ func Provider() *schema.Provider {
 			"opalstack_psqluser":    dataSourcePsqluser(),
 			"opalstack_psqldbs":     dataSourcePsqldbs(),
 			"opalstack_psqldb":      dataSourcePsqldb(),
+			"opalstack_mariausers":  dataSourceMariausers(),
+			"opalstack_mariauser":   dataSourceMariauser(),
 			"opalstack_apps":        dataSourceApps(),
 			"opalstack_app":         dataSourceApp(),
 			"opalstack_sites":       dataSourceSites(),
