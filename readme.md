@@ -30,3 +30,5 @@ I skipped the app "failed" and "installed" endpoints. They seem to be useful for
 Resource, mail, and schema endpoints aren't implemented. The former two only return access denied errors for me, and the latter one doesn't make sense in this context.
 
 I'm skipping quarantinedmail because I'm not sure how to validate that I did it right, and I don't see a use with Terraform. File a ticket if you have a use case for this.
+
+Mailuser has an update_public api endpoint, for which I don't know the use. I'll look at implementing it when I understand its purpose.

@@ -35,6 +35,7 @@ func Provider() *schema.Provider {
 			"opalstack_mariadb":   resourceMariadb(),
 			"opalstack_site":      resourceSite(),
 			"opalstack_cert":      resourceCert(),
+			"opalstack_mailuser":  resourceMailuser(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"opalstack_notices":     dataSourceNotices(),
