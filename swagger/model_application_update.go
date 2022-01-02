@@ -9,7 +9,8 @@
 package swagger
 
 type ApplicationUpdate struct {
-	Id    string                 `json:"id"`
-	Type_ *AppTypeEnum           `json:"type,omitempty"`
-	Json  map[string]interface{} `json:"json,omitempty"`
+	Id    string       `json:"id"`
+	Type_ *AppTypeEnum `json:"type,omitempty"`
+	// SWAGGERMOD: Changed from map[string]Object (which isn't a thing)
+	Json map[string]interface{} `json:"json,omitempty"`
 }

@@ -9,8 +9,9 @@
 package swagger
 
 type ApplicationResponseJson struct {
-	// Modified from the default generated output to be able to handle missing keys properly.
-	// Turned all of these into pointers, so we understand the nil case.
+	// SWAGGERMOD: Modified from the default generated output to be able to
+	// handle missing keys properly. Turned all of these into pointers, so we
+	// understand the nil case.
 	DbName             *string `json:"db_name"`
 	DbUser             *string `json:"db_user"`
 	DbHost             *string `json:"db_host"`

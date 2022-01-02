@@ -15,11 +15,7 @@ cd swagger/
 swagger-codegen generate -i https://my.opalstack.com/api/v1/schema/ -l go
 ```
 
-As of version 3.0.30, `swagger/model_ip_address_type_enum.go` generates invalid Golang enums due to starting with an integer. You need to modify that by prepending a `v`. I [reported this upstream](https://github.com/swagger-api/swagger-codegen/issues/11615)
-
-Also, JSON object types need to be converted to either `interface{}` or some other format depending on the documentation. I used `string` in some cases that just looked like key/value pairs.
-
-`swagger/model_application_response_json.go` needs to be modified to be all pointers so that we are able to capture unset state.
+I'm generally trying to add a comment anywhere I modify things from the auto-generated defaults, to make updates easier. I start the comment with `SWAGGERMOD:` for easy searching. I do my best to leave things alone, but sometimes there isn't an option.
 
 ## API Mapping Notes
 

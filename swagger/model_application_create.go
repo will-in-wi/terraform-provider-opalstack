@@ -9,9 +9,10 @@
 package swagger
 
 type ApplicationCreate struct {
-	Name         string                 `json:"name"`
-	Osuser       string                 `json:"osuser"`
-	Type_        *AppTypeEnum           `json:"type"`
-	InstallerUrl string                 `json:"installer_url,omitempty"`
-	Json         map[string]interface{} `json:"json,omitempty"`
+	Name         string       `json:"name"`
+	Osuser       string       `json:"osuser"`
+	Type_        *AppTypeEnum `json:"type"`
+	InstallerUrl string       `json:"installer_url,omitempty"`
+	// SWAGGERMOD: Changed from map[string]Object (which isn't a thing)
+	Json map[string]interface{} `json:"json,omitempty"`
 }
