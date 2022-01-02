@@ -33,7 +33,7 @@ Mailuser has an update_public api endpoint, for which I don't know the use. I'll
 
 Not sure if this is the best way to do this, but here's how I go about it.
 
-Make a folder for Terraform to cache the locally built version of your plugin. Modify `darwin_amd64` to reflect the OS you are using. This is `GOOS` and `GOARCH` from the [list in the Golang documentation](https://go.dev/doc/install/source#environment).
+Make a folder for Terraform to cache the locally built version of your plugin. Modify `darwin_amd64` to reflect the OS you are using. This is `GOOS` and `GOARCH` from the [list in the Golang documentation](https://go.dev/doc/install/source#environment). You can also get it from the output of `terraform -version`.
 ```bash
 # Example for macOS
 mkdir -p ~/.terraform.d/plugins/github.com/will-in-wi/opalstack/0.0.1/darwin_amd64/
