@@ -6,5 +6,11 @@ jobs:
     steps:
       - run: 'curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -'
       - run: 'sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"'
-      - run: 'sudo apt-get update && sudo apt-get install -y terraform'
+      - run: 'sudo apt-get update && sudo apt-get install -y terraform golang'
       - run: 'terraform -version'
+        name: 'Terraform version'
+      - run: 'go version'
+        name: 'Golang version'
+      - uses: actions/checkout@v2
+      - run: 'go mod vendor'
+      - run: 'make test'
