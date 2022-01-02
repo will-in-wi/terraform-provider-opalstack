@@ -117,5 +117,5 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 
 	c := swagger.NewAPIClient(cfg)
 
-	return &requester{c, &auth}, diags
+	return &requester{c, &auth}, diag.Diagnostics{}
 }
