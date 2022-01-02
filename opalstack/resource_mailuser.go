@@ -2,12 +2,10 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -77,7 +75,7 @@ func resourceMailuserCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	d.SetId(mailuserResponse[0].Id)
 
-	retryErr := waitForMailuserReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, mailuserChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for mailuser to be created: %s", retryErr)
 	}
@@ -127,7 +125,7 @@ func resourceMailuserUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
 
-		retryErr := waitForMailuserReady(ctx, d, r)
+		retryErr := waitForResourceReady(ctx, d, mailuserChecker(r, d))
 		if retryErr != nil {
 			return diag.Errorf("failed with error while waiting for mailuser to be updated: %s", retryErr)
 		}
@@ -147,23 +145,19 @@ func resourceMailuserDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, mailuserChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for mailuser to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
 	return diags
 }
 
-func waitForMailuserReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
+func mailuserChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
 		mailuserResponse, _, err := r.client.MailuserApi.MailuserRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !mailuserResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
+		return mailuserResponse.Ready, err
+	}
 }

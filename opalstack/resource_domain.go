@@ -2,12 +2,9 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -53,7 +50,7 @@ func resourceDomainCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId(domainResponse[0].Id)
 
-	retryErr := waitForDomainReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, domainChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for user to be updated: %s", retryErr)
 	}
@@ -86,23 +83,19 @@ func resourceDomainDelete(ctx context.Context, d *schema.ResourceData, m interfa
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, domainChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for mariauser to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
 	return diag.Diagnostics{}
 }
 
-func waitForDomainReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
+func domainChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
 		domainResponse, _, err := r.client.DomainApi.DomainRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !domainResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
+		return domainResponse.Ready, err
+	}
 }

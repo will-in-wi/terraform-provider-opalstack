@@ -2,12 +2,10 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -62,7 +60,7 @@ func resourceMariauserCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 	d.SetId(mariauserResponse[0].Id)
 
-	retryErr := waitForMariauserReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, mariauserChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for mariauser to be created: %s", retryErr)
 	}
@@ -106,7 +104,7 @@ func resourceMariauserUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
 
-		retryErr := waitForMariauserReady(ctx, d, r)
+		retryErr := waitForResourceReady(ctx, d, mariauserChecker(r, d))
 		if retryErr != nil {
 			return diag.Errorf("failed with error while waiting for mariauser to be updated: %s", retryErr)
 		}
@@ -118,31 +116,24 @@ func resourceMariauserUpdate(ctx context.Context, d *schema.ResourceData, m inte
 func resourceMariauserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.MariauserApi.MariauserDelete(*r.auth, []swagger.MariaUserRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, mariauserChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for mariauser to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
-func waitForMariauserReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
+func mariauserChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
 		mariauserResponse, _, err := r.client.MariauserApi.MariauserRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !mariauserResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
+		return mariauserResponse.Ready, err
+	}
 }

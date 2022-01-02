@@ -1,12 +1,15 @@
 package opalstack
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"strings"
 	"terraform-provider-opalstack/swagger"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -65,4 +68,35 @@ func handleSwaggerError(err error) diag.Diagnostics {
 	} else {
 		return diag.FromErr(err)
 	}
+}
+
+func waitForResourceDestroyed(ctx context.Context, d *schema.ResourceData, checker func() (bool, error)) error {
+	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
+		_, err := checker()
+		if err != nil {
+			swaggerErr, ok := err.(swagger.GenericSwaggerError)
+			if ok && swaggerErr.Error() == "404 Not Found" {
+				return nil
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		return resource.RetryableError(fmt.Errorf("not ready yet"))
+	})
+}
+
+func waitForResourceReady(ctx context.Context, d *schema.ResourceData, checker func() (bool, error)) error {
+	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
+		ready, err := checker()
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		if !ready {
+			return resource.RetryableError(fmt.Errorf("not ready yet"))
+		}
+
+		return nil
+	})
 }

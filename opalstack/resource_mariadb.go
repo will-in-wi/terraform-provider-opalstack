@@ -2,12 +2,10 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -123,7 +121,7 @@ func resourceMariadbCreate(ctx context.Context, d *schema.ResourceData, m interf
 
 	d.SetId(mariadbResponse[0].Id)
 
-	retryErr := waitForMariadbReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, mariadbChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for mariadb to be created: %s", retryErr)
 	}
@@ -169,7 +167,7 @@ func resourceMariadbUpdate(ctx context.Context, d *schema.ResourceData, m interf
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
 
-		retryErr := waitForMariadbReady(ctx, d, r)
+		retryErr := waitForResourceReady(ctx, d, mariadbChecker(r, d))
 		if retryErr != nil {
 			return diag.Errorf("failed with error while waiting for mariadb to be updated: %s", retryErr)
 		}
@@ -189,23 +187,19 @@ func resourceMariadbDelete(ctx context.Context, d *schema.ResourceData, m interf
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, mariadbChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for mariadb to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
 	return diags
 }
 
-func waitForMariadbReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
+func mariadbChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
 		mariadbResponse, _, err := r.client.MariadbApi.MariadbRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !mariadbResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
+		return mariadbResponse.Ready, err
+	}
 }

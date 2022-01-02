@@ -2,12 +2,10 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -105,7 +103,7 @@ func resourceSiteCreate(ctx context.Context, d *schema.ResourceData, m interface
 
 	d.SetId(siteResponse[0].Id)
 
-	retryErr := waitForSiteReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, siteChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for site to be created: %s", retryErr)
 	}
@@ -162,7 +160,7 @@ func resourceSiteUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
 
-		retryErr := waitForSiteReady(ctx, d, r)
+		retryErr := waitForResourceReady(ctx, d, siteChecker(r, d))
 		if retryErr != nil {
 			return diag.Errorf("failed with error while waiting for site to be updated: %s", retryErr)
 		}
@@ -182,25 +180,14 @@ func resourceSiteDelete(ctx context.Context, d *schema.ResourceData, m interface
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, siteChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for site to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
 	return diags
-}
-
-func waitForSiteReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
-		siteResponse, _, err := r.client.SiteApi.SiteRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !siteResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
 }
 
 func expandSiteRoutes(routes []interface{}) []swagger.Route {
@@ -215,4 +202,11 @@ func expandSiteRoutes(routes []interface{}) []swagger.Route {
 	}
 
 	return results
+}
+
+func siteChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
+		siteResponse, _, err := r.client.SiteApi.SiteRead(*r.auth, d.Id())
+		return siteResponse.Ready, err
+	}
 }

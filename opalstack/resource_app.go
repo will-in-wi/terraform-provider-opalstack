@@ -2,12 +2,10 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -209,7 +207,7 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 
 	d.SetId(appResponse[0].Id)
 
-	retryErr := waitForAppReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, appChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for app to be created: %s", retryErr)
 	}
@@ -259,7 +257,7 @@ func resourceAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
 
-		retryErr := waitForAppReady(ctx, d, r)
+		retryErr := waitForResourceReady(ctx, d, appChecker(r, d))
 		if retryErr != nil {
 			return diag.Errorf("failed with error while waiting for app to be updated: %s", retryErr)
 		}
@@ -279,25 +277,14 @@ func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, appChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for mariauser to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
 	return diags
-}
-
-func waitForAppReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
-		appResponse, _, err := r.client.AppApi.AppRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !appResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
 }
 
 func jsonNames() []string {
@@ -337,4 +324,11 @@ func parseOutJson(d *schema.ResourceData) map[string]interface{} {
 	}
 
 	return jsonOut
+}
+
+func appChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
+		appResponse, _, err := r.client.AppApi.AppRead(*r.auth, d.Id())
+		return appResponse.Ready, err
+	}
 }

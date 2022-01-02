@@ -2,12 +2,10 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -86,7 +84,7 @@ func resourceDnsrecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 
 	d.SetId(dnsrecordResponse[0].Id)
 
-	retryErr := waitForDnsrecordReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, dnsrecordChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for user to be updated: %s", retryErr)
 	}
@@ -136,7 +134,7 @@ func resourceDnsrecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
 
-		retryErr := waitForDnsrecordReady(ctx, d, r)
+		retryErr := waitForResourceReady(ctx, d, dnsrecordChecker(r, d))
 		if retryErr != nil {
 			return diag.Errorf("failed with error while waiting for user to be updated: %s", retryErr)
 		}
@@ -156,23 +154,19 @@ func resourceDnsrecordDelete(ctx context.Context, d *schema.ResourceData, m inte
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, dnsrecordChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for mariauser to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
 	return diags
 }
 
-func waitForDnsrecordReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
+func dnsrecordChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
 		dnsrecordResponse, _, err := r.client.DnsrecordApi.DnsrecordRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !dnsrecordResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
+		return dnsrecordResponse.Ready, err
+	}
 }

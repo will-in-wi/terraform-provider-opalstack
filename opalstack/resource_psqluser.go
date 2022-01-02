@@ -2,12 +2,10 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -62,7 +60,7 @@ func resourcePsqluserCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	d.SetId(psqluserResponse[0].Id)
 
-	retryErr := waitForPsqluserReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, psqluserChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for psqluser to be created: %s", retryErr)
 	}
@@ -106,7 +104,7 @@ func resourcePsqluserUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
 
-		retryErr := waitForPsqluserReady(ctx, d, r)
+		retryErr := waitForResourceReady(ctx, d, psqluserChecker(r, d))
 		if retryErr != nil {
 			return diag.Errorf("failed with error while waiting for psqluser to be updated: %s", retryErr)
 		}
@@ -126,23 +124,19 @@ func resourcePsqluserDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, psqluserChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for psqluser to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
 	return diags
 }
 
-func waitForPsqluserReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
+func psqluserChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
 		psqluserResponse, _, err := r.client.PsqluserApi.PsqluserRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !psqluserResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
+		return psqluserResponse.Ready, err
+	}
 }

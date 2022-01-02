@@ -2,12 +2,10 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -117,7 +115,7 @@ func resourcePsqldbCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId(psqldbResponse[0].Id)
 
-	retryErr := waitForPsqldbReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, psqldbChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for psqldb to be created: %s", retryErr)
 	}
@@ -163,7 +161,7 @@ func resourcePsqldbUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
 
-		retryErr := waitForPsqldbReady(ctx, d, r)
+		retryErr := waitForResourceReady(ctx, d, psqldbChecker(r, d))
 		if retryErr != nil {
 			return diag.Errorf("failed with error while waiting for psqldb to be updated: %s", retryErr)
 		}
@@ -183,23 +181,19 @@ func resourcePsqldbDelete(ctx context.Context, d *schema.ResourceData, m interfa
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, psqldbChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for psqldb to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
 	return diags
 }
 
-func waitForPsqldbReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
+func psqldbChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
 		psqldbResponse, _, err := r.client.PsqldbApi.PsqldbRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !psqldbResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
+		return psqldbResponse.Ready, err
+	}
 }

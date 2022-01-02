@@ -2,12 +2,10 @@ package opalstack
 
 import (
 	"context"
-	"fmt"
 	"terraform-provider-opalstack/swagger"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -67,7 +65,7 @@ func resourceOsvarCreate(ctx context.Context, d *schema.ResourceData, m interfac
 
 	d.SetId(osvarResponse[0].Id)
 
-	retryErr := waitForOsvarReady(ctx, d, r)
+	retryErr := waitForResourceReady(ctx, d, osvarChecker(r, d))
 	if retryErr != nil {
 		return diag.Errorf("failed with error while waiting for osvar to be created: %s", retryErr)
 	}
@@ -113,7 +111,7 @@ func resourceOsvarUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 
 		d.Set("last_updated", time.Now().Format(time.RFC850))
 
-		retryErr := waitForOsvarReady(ctx, d, r)
+		retryErr := waitForResourceReady(ctx, d, osvarChecker(r, d))
 		if retryErr != nil {
 			return diag.Errorf("failed with error while waiting for osvar to be updated: %s", retryErr)
 		}
@@ -133,23 +131,19 @@ func resourceOsvarDelete(ctx context.Context, d *schema.ResourceData, m interfac
 		return handleSwaggerError(err)
 	}
 
+	retryErr := waitForResourceDestroyed(ctx, d, osvarChecker(r, d))
+	if retryErr != nil {
+		return diag.Errorf("failed with error while waiting for osvar to be destroyed: %s", retryErr)
+	}
+
 	d.SetId("")
 
 	return diags
 }
 
-func waitForOsvarReady(ctx context.Context, d *schema.ResourceData, r *requester) error {
-	return resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate)-time.Minute, func() *resource.RetryError {
-		var err error
+func osvarChecker(r *requester, d *schema.ResourceData) func() (bool, error) {
+	return func() (bool, error) {
 		osvarResponse, _, err := r.client.OsvarApi.OsvarRead(*r.auth, d.Id())
-		if err != nil {
-			return resource.NonRetryableError(err)
-		}
-
-		if !osvarResponse.Ready {
-			return resource.RetryableError(fmt.Errorf("not ready yet"))
-		}
-
-		return nil
-	})
+		return osvarResponse.Ready, err
+	}
 }
