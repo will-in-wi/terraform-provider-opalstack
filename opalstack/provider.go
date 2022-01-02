@@ -23,6 +23,7 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
+			"opalstack_token":     resourceToken(),
 			"opalstack_notice":    resourceNotice(),
 			"opalstack_domain":    resourceDomain(),
 			"opalstack_dnsrecord": resourceDnsrecord(),
@@ -39,6 +40,8 @@ func Provider() *schema.Provider {
 			"opalstack_address":   resourceAddress(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
+			"opalstack_tokens":      dataSourceTokens(),
+			"opalstack_token":       dataSourceToken(),
 			"opalstack_notices":     dataSourceNotices(),
 			"opalstack_notice":      dataSourceNotice(),
 			"opalstack_servers":     dataSourceServers(),
