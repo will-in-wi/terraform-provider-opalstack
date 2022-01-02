@@ -65,6 +65,8 @@ func Provider() *schema.Provider {
 			"opalstack_app":         dataSourceApp(),
 			"opalstack_mailusers":   dataSourceMailusers(),
 			"opalstack_mailuser":    dataSourceMailuser(),
+			"opalstack_addresses":   dataSourceAddresses(),
+			"opalstack_address":     dataSourceAddress(),
 			"opalstack_sites":       dataSourceSites(),
 			"opalstack_site":        dataSourceSite(),
 			"opalstack_cert":        dataSourceCert(),
