@@ -33,8 +33,6 @@ func dataSourceServers() *schema.Resource {
 func dataSourceServersRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	serversResponse, _, err := r.client.ServerApi.ServerList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -83,5 +81,5 @@ func dataSourceServersRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

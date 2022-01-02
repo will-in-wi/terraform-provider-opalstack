@@ -17,8 +17,6 @@ func dataSourceOsvar() *schema.Resource {
 func dataSourceOsvarRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	osvarResponse, _, err := r.client.OsvarApi.OsvarRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -32,5 +30,5 @@ func dataSourceOsvarRead(ctx context.Context, d *schema.ResourceData, m interfac
 	d.Set("global", osvarResponse.Global)
 	d.SetId(osvarResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

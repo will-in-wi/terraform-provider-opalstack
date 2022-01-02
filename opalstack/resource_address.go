@@ -71,8 +71,6 @@ func resourceAddressCreate(ctx context.Context, d *schema.ResourceData, m interf
 func resourceAddressRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	addressResponse, _, err := r.client.AddressApi.AddressRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -82,7 +80,7 @@ func resourceAddressRead(ctx context.Context, d *schema.ResourceData, m interfac
 	d.Set("destinations", addressResponse.Destinations)
 	d.Set("forwards", addressResponse.Forwards)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceAddressUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -115,9 +113,6 @@ func resourceAddressUpdate(ctx context.Context, d *schema.ResourceData, m interf
 func resourceAddressDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.AddressApi.AddressDelete(*r.auth, []swagger.VirtualAliasRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -130,7 +125,7 @@ func resourceAddressDelete(ctx context.Context, d *schema.ResourceData, m interf
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func addressChecker(r *requester, d *schema.ResourceData) func() (bool, error) {

@@ -23,8 +23,6 @@ func dataSourceSites() *schema.Resource {
 func dataSourceSitesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	sitesResponse, _, err := r.client.SiteApi.SiteList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -57,5 +55,5 @@ func dataSourceSitesRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

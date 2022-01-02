@@ -17,8 +17,6 @@ func dataSourceServer() *schema.Resource {
 func dataSourceServerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	serverResponse, _, err := r.client.ServerApi.ServerRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -28,5 +26,5 @@ func dataSourceServerRead(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("type", serverResponse.Type_)
 	d.SetId(serverResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

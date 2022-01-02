@@ -23,8 +23,6 @@ func dataSourceMariausers() *schema.Resource {
 func dataSourceMariausersRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	mariausersResponse, _, err := r.client.MariauserApi.MariauserList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -49,5 +47,5 @@ func dataSourceMariausersRead(ctx context.Context, d *schema.ResourceData, m int
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

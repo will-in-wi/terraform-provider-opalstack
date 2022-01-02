@@ -17,8 +17,6 @@ func dataSourceOsuser() *schema.Resource {
 func dataSourceOsuserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	osuserResponse, _, err := r.client.OsuserApi.OsuserRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -30,5 +28,5 @@ func dataSourceOsuserRead(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("server", osuserResponse.Server)
 	d.SetId(osuserResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

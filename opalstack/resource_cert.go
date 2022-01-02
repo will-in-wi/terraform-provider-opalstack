@@ -51,9 +51,6 @@ func resourceCert() *schema.Resource {
 func resourceCertCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	body := []swagger.CertCreate{
 		{
 			Name:          d.Get("name").(string),
@@ -71,13 +68,11 @@ func resourceCertCreate(ctx context.Context, d *schema.ResourceData, m interface
 	d.SetId(certResponse[0].Id)
 	resourceCertRead(ctx, d, m)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceCertRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
-
-	var diags diag.Diagnostics
 
 	certResponse, _, err := r.client.CertApi.CertRead(*r.auth, d.Id())
 	if err != nil {
@@ -86,7 +81,7 @@ func resourceCertRead(ctx context.Context, d *schema.ResourceData, m interface{}
 
 	populateFromCertResponse(d, certResponse)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceCertUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -117,9 +112,6 @@ func resourceCertUpdate(ctx context.Context, d *schema.ResourceData, m interface
 func resourceCertDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.CertApi.CertDelete(*r.auth, []swagger.CertRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -127,5 +119,5 @@ func resourceCertDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }

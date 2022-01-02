@@ -88,8 +88,6 @@ func resourceMailuserCreate(ctx context.Context, d *schema.ResourceData, m inter
 func resourceMailuserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	mailuserResponse, _, err := r.client.MailuserApi.MailuserRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -102,7 +100,7 @@ func resourceMailuserRead(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("autoresponder_subject", mailuserResponse.AutoresponderSubject)
 	d.Set("autoresponder_message", mailuserResponse.AutoresponderMessage)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceMailuserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -137,9 +135,6 @@ func resourceMailuserUpdate(ctx context.Context, d *schema.ResourceData, m inter
 func resourceMailuserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.MailuserApi.MailuserDelete(*r.auth, []swagger.MailUserDelete{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -152,7 +147,7 @@ func resourceMailuserDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func mailuserChecker(r *requester, d *schema.ResourceData) func() (bool, error) {

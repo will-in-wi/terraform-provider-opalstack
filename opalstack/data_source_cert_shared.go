@@ -18,8 +18,6 @@ func dataSourceCertShared() *schema.Resource {
 func dataSourceCertSharedRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	certResponse, _, err := r.client.CertApi.CertShared(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -34,5 +32,5 @@ func dataSourceCertSharedRead(ctx context.Context, d *schema.ResourceData, m int
 	d.Set("listed_domains", certResponse.ListedDomains)
 	d.SetId(certResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

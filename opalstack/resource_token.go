@@ -53,8 +53,6 @@ func resourceTokenCreate(ctx context.Context, d *schema.ResourceData, m interfac
 func resourceTokenRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	tokenResponse, _, err := r.client.TokenApi.TokenRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -63,7 +61,7 @@ func resourceTokenRead(ctx context.Context, d *schema.ResourceData, m interface{
 	d.Set("name", tokenResponse.Name)
 	d.Set("key", tokenResponse.Key)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceTokenUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -89,9 +87,6 @@ func resourceTokenUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 func resourceTokenDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.TokenApi.TokenDelete(*r.auth, []swagger.TokenRead{{Key: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -99,5 +94,5 @@ func resourceTokenDelete(ctx context.Context, d *schema.ResourceData, m interfac
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }

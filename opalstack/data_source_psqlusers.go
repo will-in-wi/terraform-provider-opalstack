@@ -23,8 +23,6 @@ func dataSourcePsqlusers() *schema.Resource {
 func dataSourcePsqlusersRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	psqlusersResponse, _, err := r.client.PsqluserApi.PsqluserList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -49,5 +47,5 @@ func dataSourcePsqlusersRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

@@ -17,8 +17,6 @@ func dataSourceApp() *schema.Resource {
 func dataSourceAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	appResponse, _, err := r.client.AppApi.AppRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -35,5 +33,5 @@ func dataSourceAppRead(ctx context.Context, d *schema.ResourceData, m interface{
 	d.Set("json", jsonStructToFlatMap(*appResponse.Json))
 	d.SetId(appResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

@@ -78,8 +78,6 @@ func resourceNoticeCreate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceNoticeRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	noticeResponse, _, err := r.client.NoticeApi.NoticeRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -89,7 +87,7 @@ func resourceNoticeRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("content", noticeResponse.Content)
 	d.Set("created_at", noticeResponse.CreatedAt.Format(time.RFC3339))
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceNoticeUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -119,9 +117,6 @@ func resourceNoticeUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceNoticeDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.NoticeApi.NoticeDelete(*r.auth, []swagger.NoticeRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -129,5 +124,5 @@ func resourceNoticeDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }

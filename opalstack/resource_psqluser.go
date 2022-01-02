@@ -73,8 +73,6 @@ func resourcePsqluserCreate(ctx context.Context, d *schema.ResourceData, m inter
 func resourcePsqluserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	psqluserResponse, _, err := r.client.PsqluserApi.PsqluserRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -84,7 +82,7 @@ func resourcePsqluserRead(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("name", psqluserResponse.Name)
 	d.Set("external", psqluserResponse.External)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourcePsqluserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -116,9 +114,6 @@ func resourcePsqluserUpdate(ctx context.Context, d *schema.ResourceData, m inter
 func resourcePsqluserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.PsqluserApi.PsqluserDelete(*r.auth, []swagger.PsqlUserRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -131,7 +126,7 @@ func resourcePsqluserDelete(ctx context.Context, d *schema.ResourceData, m inter
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func psqluserChecker(r *requester, d *schema.ResourceData) func() (bool, error) {

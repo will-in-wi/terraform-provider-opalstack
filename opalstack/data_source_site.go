@@ -17,8 +17,6 @@ func dataSourceSite() *schema.Resource {
 func dataSourceSiteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	siteResponse, _, err := r.client.SiteApi.SiteRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -39,5 +37,5 @@ func dataSourceSiteRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("le_http_challenge_tokens", siteResponse.LeHttpChallengeTokens)
 	d.SetId(siteResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

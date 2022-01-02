@@ -17,8 +17,6 @@ func dataSourceIp() *schema.Resource {
 func dataSourceIpRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	ipResponse, _, err := r.client.IpApi.IpRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -30,5 +28,5 @@ func dataSourceIpRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	d.Set("primary", ipResponse.Primary)
 	d.SetId(ipResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

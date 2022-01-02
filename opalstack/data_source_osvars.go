@@ -23,8 +23,6 @@ func dataSourceOsvars() *schema.Resource {
 func dataSourceOsvarsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	osvarsResponse, _, err := r.client.OsvarApi.OsvarList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -50,5 +48,5 @@ func dataSourceOsvarsRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

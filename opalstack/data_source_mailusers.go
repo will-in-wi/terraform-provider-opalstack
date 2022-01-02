@@ -23,8 +23,6 @@ func dataSourceMailusers() *schema.Resource {
 func dataSourceMailusersRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	mailusersResponse, _, err := r.client.MailuserApi.MailuserList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -53,5 +51,5 @@ func dataSourceMailusersRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

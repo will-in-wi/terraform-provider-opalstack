@@ -220,8 +220,6 @@ func resourceAppCreate(ctx context.Context, d *schema.ResourceData, m interface{
 func resourceAppRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	appResponse, _, err := r.client.AppApi.AppRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -235,7 +233,7 @@ func resourceAppRead(ctx context.Context, d *schema.ResourceData, m interface{})
 	d.Set("server", appResponse.Server)
 	d.Set("port", appResponse.Port)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -269,9 +267,6 @@ func resourceAppUpdate(ctx context.Context, d *schema.ResourceData, m interface{
 func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.AppApi.AppDelete(*r.auth, []swagger.ApplicationRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -284,7 +279,7 @@ func resourceAppDelete(ctx context.Context, d *schema.ResourceData, m interface{
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func jsonNames() []string {

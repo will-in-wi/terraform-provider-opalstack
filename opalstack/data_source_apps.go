@@ -23,8 +23,6 @@ func dataSourceApps() *schema.Resource {
 func dataSourceAppsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	appsResponse, _, err := r.client.AppApi.AppList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -53,5 +51,5 @@ func dataSourceAppsRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

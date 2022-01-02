@@ -134,8 +134,6 @@ func resourceMariadbCreate(ctx context.Context, d *schema.ResourceData, m interf
 func resourceMariadbRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	mariadbResponse, _, err := r.client.MariadbApi.MariadbRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -147,7 +145,7 @@ func resourceMariadbRead(ctx context.Context, d *schema.ResourceData, m interfac
 	d.Set("dbusers_readwrite", mariadbResponse.DbusersReadwrite)
 	d.Set("dbusers_readonly", mariadbResponse.DbusersReadonly)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceMariadbUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -179,9 +177,6 @@ func resourceMariadbUpdate(ctx context.Context, d *schema.ResourceData, m interf
 func resourceMariadbDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.MariadbApi.MariadbDelete(*r.auth, []swagger.MariaDbRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -194,7 +189,7 @@ func resourceMariadbDelete(ctx context.Context, d *schema.ResourceData, m interf
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func mariadbChecker(r *requester, d *schema.ResourceData) func() (bool, error) {

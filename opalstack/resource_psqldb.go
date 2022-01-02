@@ -128,8 +128,6 @@ func resourcePsqldbCreate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourcePsqldbRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	psqldbResponse, _, err := r.client.PsqldbApi.PsqldbRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -141,7 +139,7 @@ func resourcePsqldbRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("dbusers_readwrite", psqldbResponse.DbusersReadwrite)
 	d.Set("dbusers_readonly", psqldbResponse.DbusersReadonly)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourcePsqldbUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -173,9 +171,6 @@ func resourcePsqldbUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourcePsqldbDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.PsqldbApi.PsqldbDelete(*r.auth, []swagger.PsqlDbRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -188,7 +183,7 @@ func resourcePsqldbDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func psqldbChecker(r *requester, d *schema.ResourceData) func() (bool, error) {

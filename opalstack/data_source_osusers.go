@@ -23,8 +23,6 @@ func dataSourceOsusers() *schema.Resource {
 func dataSourceOsusersRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	osusersResponse, _, err := r.client.OsuserApi.OsuserList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -48,5 +46,5 @@ func dataSourceOsusersRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

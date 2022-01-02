@@ -17,8 +17,6 @@ func dataSourceDnsrecord() *schema.Resource {
 func dataSourceDnsrecordRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	dnsrecordResponse, _, err := r.client.DnsrecordApi.DnsrecordRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -34,5 +32,5 @@ func dataSourceDnsrecordRead(ctx context.Context, d *schema.ResourceData, m inte
 	d.Set("ttl", dnsrecordResponse.Ttl)
 	d.SetId(dnsrecordResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

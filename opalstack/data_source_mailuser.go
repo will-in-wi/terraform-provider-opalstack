@@ -17,8 +17,6 @@ func dataSourceMailuser() *schema.Resource {
 func dataSourceMailuserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	mailuserResponse, _, err := r.client.MailuserApi.MailuserRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -35,5 +33,5 @@ func dataSourceMailuserRead(ctx context.Context, d *schema.ResourceData, m inter
 	d.Set("autoresponder_noreply", mailuserResponse.AutoresponderNoreply)
 	d.SetId(mailuserResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

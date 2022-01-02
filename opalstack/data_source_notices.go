@@ -43,8 +43,6 @@ func dataSourceNotices() *schema.Resource {
 func dataSourceNoticesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	noticeResponse, _, err := r.client.NoticeApi.NoticeList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -67,5 +65,5 @@ func dataSourceNoticesRead(ctx context.Context, d *schema.ResourceData, m interf
 		return diag.Errorf("Unable to assign notices: %s", err)
 	}
 
-	return diags
+	return diag.Diagnostics{}
 }

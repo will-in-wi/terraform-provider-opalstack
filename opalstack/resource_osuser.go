@@ -72,8 +72,6 @@ func resourceOsuserCreate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceOsuserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	osuserResponse, _, err := r.client.OsuserApi.OsuserRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -82,7 +80,7 @@ func resourceOsuserRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.Set("server", osuserResponse.Server)
 	d.Set("name", osuserResponse.Name)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceOsuserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -113,9 +111,6 @@ func resourceOsuserUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceOsuserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.OsuserApi.OsuserDelete(*r.auth, []swagger.OsUserRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -128,7 +123,7 @@ func resourceOsuserDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func osuserChecker(r *requester, d *schema.ResourceData) func() (bool, error) {

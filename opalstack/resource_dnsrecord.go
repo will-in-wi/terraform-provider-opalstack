@@ -97,8 +97,6 @@ func resourceDnsrecordCreate(ctx context.Context, d *schema.ResourceData, m inte
 func resourceDnsrecordRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	dnsrecordResponse, _, err := r.client.DnsrecordApi.DnsrecordRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -110,7 +108,7 @@ func resourceDnsrecordRead(ctx context.Context, d *schema.ResourceData, m interf
 	d.Set("priority", dnsrecordResponse.Priority)
 	d.Set("ttl", dnsrecordResponse.Ttl)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceDnsrecordUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -146,9 +144,6 @@ func resourceDnsrecordUpdate(ctx context.Context, d *schema.ResourceData, m inte
 func resourceDnsrecordDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.DnsrecordApi.DnsrecordDelete(*r.auth, []swagger.DnsRecordRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -161,7 +156,7 @@ func resourceDnsrecordDelete(ctx context.Context, d *schema.ResourceData, m inte
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func dnsrecordChecker(r *requester, d *schema.ResourceData) func() (bool, error) {

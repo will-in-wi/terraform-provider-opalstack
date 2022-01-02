@@ -17,8 +17,6 @@ func dataSourcePsqluser() *schema.Resource {
 func dataSourcePsqluserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	psqluserResponse, _, err := r.client.PsqluserApi.PsqluserRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -31,5 +29,5 @@ func dataSourcePsqluserRead(ctx context.Context, d *schema.ResourceData, m inter
 	d.Set("external", psqluserResponse.External)
 	d.SetId(psqluserResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

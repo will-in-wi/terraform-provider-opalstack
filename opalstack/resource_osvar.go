@@ -78,8 +78,6 @@ func resourceOsvarCreate(ctx context.Context, d *schema.ResourceData, m interfac
 func resourceOsvarRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	osvarResponse, _, err := r.client.OsvarApi.OsvarRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -90,7 +88,7 @@ func resourceOsvarRead(ctx context.Context, d *schema.ResourceData, m interface{
 	d.Set("osusers", stringArrayToStringSet(osvarResponse.Osusers))
 	d.Set("global", osvarResponse.Global)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceOsvarUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -123,9 +121,6 @@ func resourceOsvarUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 func resourceOsvarDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.OsvarApi.OsvarDelete(*r.auth, []swagger.OsVarRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -138,7 +133,7 @@ func resourceOsvarDelete(ctx context.Context, d *schema.ResourceData, m interfac
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func osvarChecker(r *requester, d *schema.ResourceData) func() (bool, error) {

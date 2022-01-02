@@ -116,8 +116,6 @@ func resourceSiteCreate(ctx context.Context, d *schema.ResourceData, m interface
 func resourceSiteRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	siteResponse, _, err := r.client.SiteApi.SiteRead(*r.auth, d.Id())
 	if err != nil {
 		return handleSwaggerError(err)
@@ -133,7 +131,7 @@ func resourceSiteRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	d.Set("generate_le", siteResponse.GenerateLe)
 	d.Set("disabled", siteResponse.Disabled)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func resourceSiteUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -172,9 +170,6 @@ func resourceSiteUpdate(ctx context.Context, d *schema.ResourceData, m interface
 func resourceSiteDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	_, err := r.client.SiteApi.SiteDelete(*r.auth, []swagger.SiteRead{{Id: d.Id()}})
 	if err != nil {
 		return handleSwaggerError(err)
@@ -187,7 +182,7 @@ func resourceSiteDelete(ctx context.Context, d *schema.ResourceData, m interface
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func expandSiteRoutes(routes []interface{}) []swagger.Route {

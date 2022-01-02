@@ -32,8 +32,6 @@ func dataSourceCerts() *schema.Resource {
 func dataSourceCertsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	certResponse, _, err := r.client.CertApi.CertList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -61,5 +59,5 @@ func dataSourceCertsRead(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.Errorf("Unable to assign certs: %s", err)
 	}
 
-	return diags
+	return diag.Diagnostics{}
 }

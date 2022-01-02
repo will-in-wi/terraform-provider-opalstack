@@ -23,8 +23,6 @@ func dataSourcePsqldbs() *schema.Resource {
 func dataSourcePsqldbsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	psqldbsResponse, _, err := r.client.PsqldbApi.PsqldbList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -51,5 +49,5 @@ func dataSourcePsqldbsRead(ctx context.Context, d *schema.ResourceData, m interf
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

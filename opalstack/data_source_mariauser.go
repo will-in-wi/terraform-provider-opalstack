@@ -17,8 +17,6 @@ func dataSourceMariauser() *schema.Resource {
 func dataSourceMariauserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	mariauserResponse, _, err := r.client.MariauserApi.MariauserRead(*r.auth, d.Get("id").(string))
 	if err != nil {
 		return handleSwaggerError(err)
@@ -31,5 +29,5 @@ func dataSourceMariauserRead(ctx context.Context, d *schema.ResourceData, m inte
 	d.Set("external", mariauserResponse.External)
 	d.SetId(mariauserResponse.Id)
 
-	return diags
+	return diag.Diagnostics{}
 }

@@ -102,18 +102,16 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 		basePath = &tempHost
 	}
 
-	// Warning or errors can be collected in a slice type
-	var diags diag.Diagnostics
-
 	cfg := swagger.NewConfiguration()
 	cfg.UserAgent = "terraform-provider-opalstack/0.0.1"
 	if basePath == nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Missing base_path",
-			Detail:   "The base_path parameter has been set to nothing",
-		})
-		return nil, diags
+		return nil, diag.Diagnostics{
+			diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Missing base_path",
+				Detail:   "The base_path parameter has been set to nothing",
+			},
+		}
 	}
 	cfg.BasePath = *basePath
 

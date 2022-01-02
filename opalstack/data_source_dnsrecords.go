@@ -23,8 +23,6 @@ func dataSourceDnsrecords() *schema.Resource {
 func dataSourceDnsrecordsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	dnsrecordsResponse, _, err := r.client.DnsrecordApi.DnsrecordList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -51,5 +49,5 @@ func dataSourceDnsrecordsRead(ctx context.Context, d *schema.ResourceData, m int
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

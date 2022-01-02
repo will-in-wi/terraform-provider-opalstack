@@ -23,8 +23,6 @@ func dataSourceTokens() *schema.Resource {
 func dataSourceTokensRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	tokensResponse, _, err := r.client.TokenApi.TokenList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -46,5 +44,5 @@ func dataSourceTokensRead(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }

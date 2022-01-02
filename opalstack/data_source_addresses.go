@@ -23,8 +23,6 @@ func dataSourceAddresses() *schema.Resource {
 func dataSourceAddressesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	r := m.(*requester)
 
-	var diags diag.Diagnostics
-
 	addressesResponse, _, err := r.client.AddressApi.AddressList(*r.auth)
 	if err != nil {
 		return handleSwaggerError(err)
@@ -49,5 +47,5 @@ func dataSourceAddressesRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	d.SetId(generateIdFromList(uuids))
 
-	return diags
+	return diag.Diagnostics{}
 }
