@@ -9,8 +9,9 @@
 package swagger
 
 type VirtualAliasUpdate struct {
-	Id           string   `json:"id"`
-	Source       string   `json:"source,omitempty"`
-	Destinations []string `json:"destinations,omitempty"`
-	Forwards     []string `json:"forwards,omitempty"`
+	Id     string `json:"id"`
+	Source string `json:"source,omitempty"`
+	// SWAGGERMOD: Dropped omitempty to allow for making this blank.
+	Destinations []string `json:"destinations"`
+	Forwards     []string `json:"forwards"`
 }
