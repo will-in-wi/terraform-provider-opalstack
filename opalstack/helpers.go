@@ -24,16 +24,6 @@ func generateIdFromList(strs []string) string {
 	return fmt.Sprintf("%x", hash)
 }
 
-func arrayContains(haystack []string, needle string) bool {
-	for _, s := range haystack {
-		if s == needle {
-			return true
-		}
-	}
-
-	return false
-}
-
 func stringSetToStringArray(set *schema.Set) []string {
 	result := make([]string, 0)
 
