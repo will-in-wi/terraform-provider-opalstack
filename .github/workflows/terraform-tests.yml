@@ -8,10 +8,10 @@ jobs:
       - run: 'sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"'
       - run: 'sudo apt-get update && sudo apt-get install -y terraform curl'
       - run: 'terraform -version'
-        name: 'Terraform version'
-      - run: 'curl https://dl.google.com/go/go1.17.5.linux-amd64.tar.gz | tar -C /usr/local -xzf -'
+        name: 'ℹ️ Terraform version'
+      - run: 'curl https://dl.google.com/go/go1.17.5.linux-amd64.tar.gz | sudo tar -C /usr/local -xzf -'
       - run: '/usr/local/go/bin/go version'
-        name: 'Golang version'
+        name: 'ℹ️ Golang version'
       - uses: actions/checkout@v2
       - run: '/usr/local/go/bin/go mod vendor'
       - run: 'make test'
