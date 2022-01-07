@@ -67,3 +67,7 @@ provider "opalstack" {
 ```
 
 In that folder, you can run `rm .terraform.lock.hcl && terraform init && terraform plan` to pick up the newly compiled version and run a plan. Technically the `rm` and `terraform init` are only required when the provider binary changes.
+
+## Affiliate link
+
+If you appreciate this project and are spinning up a new Opalstack account, [consider using my affiliate link](https://my.opalstack.com/signup?lmref=OFx9xw) so I'll get 10% of your Opalstack spend with the new account.
